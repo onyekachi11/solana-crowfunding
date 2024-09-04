@@ -1,0 +1,211 @@
+"use client";
+import React, { useState } from "react";
+import * as web3 from "@solana/web3.js";
+import * as anchor from "@coral-xyz/anchor";
+import Modal from "./Modal";
+import Button from "./Button";
+import toast from "react-hot-toast";
+import Icon from "./Icon";
+import { IoCloseCircle } from "react-icons/io5";
+
+interface Campaign {
+  program: anchor.Program<anchor.Idl> | undefined;
+  payer: web3.PublicKey;
+}
+
+const CreateCampaign = ({ program, payer }: Campaign) => {
+  const [openModal, setOpenModal] = useState(false);
+  const [openLinkModal, setOpenLinkModal] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [id, setId] = useState<string | null>("");
+  const [title, setTitle] = useState<string | null>();
+  const [description, setDescription] = useState<string | null>();
+  const [fundingGoal, setFundingGoal] = useState<number | null>();
+
+  // console.log(payer);
+  const createACampaign = async (
+    title: string,
+    description: string,
+    fundingGoal: number
+  ) => {
+    if (payer == null) {
+      toast.error(`No wallet connected`);
+      return;
+    }
+    // Create a new keypair for the campaign account
+    const campaignKeypair = anchor.web3.Keypair.generate();
+    const amount = new anchor.BN(fundingGoal * web3.LAMPORTS_PER_SOL);
+    const toastloading = toast.loading("Loading...");
+
+    toastloading;
+
+    try {
+      // Create a transaction instruction to create and initialize the campaign account
+      const tx = await program?.methods
+        ?.createCampaign(title, description, amount)
+        .accounts({
+          campaign: campaignKeypair.publicKey,
+          payer: payer,
+        })
+        .signers([campaignKeypair])
+        .rpc();
+
+      setId(campaignKeypair.publicKey.toString());
+      setOpenModal(false);
+      setOpenLinkModal(true);
+      toast.success(`Campaign created successfully!`, {
+        id: toastloading,
+      });
+
+      return tx;
+    } catch (error) {
+      console.error(error);
+      toast.error(`Error creating campaign`, {
+        id: toastloading,
+      });
+    }
+  };
+
+  const shareLink = `http://localhost:3000/?campaignId=${id}`;
+  const blinkLink = `http://localhost:3000/api/action?campaign_id=${id}`;
+
+  const handleCopy = async (link: string) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
+      toast.success("Link copied");
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
+  return (
+    <div className=" m-10">
+      <div>
+        <Button name="Create Campaign" onClick={() => setOpenModal(true)} />
+      </div>
+      {openModal && (
+        <Modal>
+          <div className="w-[600px]  h-[800px] py-10 px-10 ">
+            <div className="flex flex-col justify-between h-full">
+              <div className="flex  flex-col gap-8 ">
+                <div className="flex justify-between items-center">
+                  <p className="font-medium text-[40px] mb-3">
+                    Create a campaign
+                  </p>
+                  <div
+                    onClick={() => setOpenModal(false)}
+                    className="cursor-pointer"
+                  >
+                    <IoCloseCircle size={30} />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="label" className="font-medium text-[20px]">
+                    Title
+                  </label>
+                  <input
+                    placeholder="campaign title "
+                    onChange={(event) => setTitle(event.target.value)}
+                    className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="label" className="font-medium text-[20px]">
+                    Description
+                  </label>
+                  <input
+                    type="textarea"
+                    placeholder="campaign description"
+                    onChange={(event) => setDescription(event.target.value)}
+                    className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="label" className="font-medium text-[20px]">
+                    Campaign Goal (SOL)
+                  </label>
+                  <input
+                    type="campaign goal"
+                    placeholder="amount"
+                    onChange={(event) =>
+                      setFundingGoal(Number(event.target.value))
+                    }
+                    className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
+                  />
+                </div>
+              </div>
+              <Button
+                name="Submit"
+                onClick={() => {
+                  if (
+                    title == null ||
+                    description == null ||
+                    fundingGoal == null
+                  ) {
+                    toast(
+                      <span>
+                        <p>Fill up inputs</p>
+                      </span>,
+                      {
+                        icon: <Icon />,
+                      }
+                    );
+                  } else {
+                    createACampaign(title, description, fundingGoal);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {openLinkModal && (
+        <Modal>
+          <div className="w-[600px] p-9">
+            <div className="flex justify-between items-center">
+              <p className="font-medium text-[20px] ">
+                Share your campaign link
+              </p>
+              <div
+                onClick={() => setOpenLinkModal(false)}
+                className="cursor-pointer"
+              >
+                <IoCloseCircle size={30} />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center  mt-6 gap-2 w-full">
+              <p className="border border-[#aba2a2b8] p-3 w-[72%] overflow-x-auto whitespace-nowrap rounded">
+                <a href={shareLink}>{shareLink}</a>
+              </p>
+              <Button
+                name={isCopied ? "Copied!" : "Copy Link"}
+                onClick={() => handleCopy(shareLink)}
+              />
+            </div>
+          </div>
+          <div className="w-[600px] p-9">
+            <div className="flex justify-between items-center">
+              <p className="font-medium text-[20px] ">Share your blink link</p>
+            </div>
+
+            <div className="flex justify-between items-center  mt-6 gap-2 w-full">
+              <p className="border border-[#aba2a2b8] p-3 w-[72%] overflow-x-auto whitespace-nowrap rounded">
+                <a href={blinkLink}>{blinkLink}</a>
+              </p>
+              <Button
+                name={isCopied ? "Copied!" : "Copy Link"}
+                onClick={() => handleCopy(blinkLink)}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+};
+
+export default CreateCampaign;
