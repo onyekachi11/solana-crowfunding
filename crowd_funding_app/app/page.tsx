@@ -19,9 +19,14 @@ export default function Home() {
     anchor.web3.clusterApiUrl(network),
     "confirmed"
   );
-  const provider = new anchor.AnchorProvider(connection, window.solana, {
-    preflightCommitment: "confirmed",
-  });
+  // const provider = new anchor.AnchorProvider(connection, window.solana, {
+  //   preflightCommitment: "confirmed",
+  // });
+  const provider = new anchor.AnchorProvider(
+    connection,
+    {} as anchor.Wallet, // Empty wallet for read-only operations
+    { preflightCommitment: "confirmed" }
+  );
 
   const programId = new web3.PublicKey(
     "Eis8iYtZBk7HmgBEvgj1soAtCZjqV8mDcRbcqo1U4TPc"
