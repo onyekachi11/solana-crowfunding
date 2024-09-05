@@ -45,7 +45,8 @@ const Campaign = ({ program, payer, programId }: Campaign) => {
 
   const campaignPublicKey = campaignId && new web3.PublicKey(campaignId);
 
-  const blinkLink = `http://localhost:3000/api/action?campaign_id=${campaignId}`;
+  // const blinkLink = `http://localhost:3000/api/action?campaign_id=${campaignId}`;
+  const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaignId}`;
 
   const handleCopy = async () => {
     try {

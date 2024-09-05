@@ -66,8 +66,11 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
     }
   };
 
-  const shareLink = `http://localhost:3000/?campaignId=${id}`;
-  const blinkLink = `http://localhost:3000/api/action?campaign_id=${id}`;
+  // const shareLink = `http://localhost:3000/?campaignId=${id}`;
+  // const blinkLink = `http://localhost:3000/api/action?campaign_id=${id}`;
+
+  const shareLink = `https://solana-crowfunding.vercel.app/?campaignId=${id}`;
+  const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${id}`;
 
   const handleCopy = async (link: string) => {
     try {
