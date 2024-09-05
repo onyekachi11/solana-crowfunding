@@ -13,7 +13,7 @@ const Navbar = () => {
       <div className="flex items-center gap-2">
         <BalanceDisplay />
         <WalletMultiButton />
-        <WalletDisconnectButton />
+        {/* <WalletDisconnectButton /> */}
       </div>
     </div>
   );

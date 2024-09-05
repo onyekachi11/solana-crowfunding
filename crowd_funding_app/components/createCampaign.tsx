@@ -10,7 +10,7 @@ import { IoCloseCircle } from "react-icons/io5";
 
 interface Campaign {
   program: anchor.Program<anchor.Idl> | undefined;
-  payer: web3.PublicKey;
+  payer: web3.PublicKey | null;
 }
 
 const CreateCampaign = ({ program, payer }: Campaign) => {
@@ -22,15 +22,13 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
   const [description, setDescription] = useState<string | null>();
   const [fundingGoal, setFundingGoal] = useState<number | null>();
 
-  // console.log(payer);
   const createACampaign = async (
     title: string,
     description: string,
     fundingGoal: number
   ) => {
-    if (payer == null) {
-      toast.error(`No wallet connected`);
-      return;
+    if (!payer) {
+      return null;
     }
     // Create a new keypair for the campaign account
     const campaignKeypair = anchor.web3.Keypair.generate();
@@ -38,6 +36,8 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
     const toastloading = toast.loading("Loading...");
 
     toastloading;
+
+    console.log("Campaign", payer);
 
     try {
       // Create a transaction instruction to create and initialize the campaign account
@@ -69,7 +69,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
   // const shareLink = `http://localhost:3000/?campaignId=${id}`;
   // const blinkLink = `http://localhost:3000/api/action?campaign_id=${id}`;
 
-  const shareLink = `https://solana-crowfunding.vercel.app/?campaignId=${id}`;
+  const shareLink = `https://solana-crowfunding.vercel.app/?campaign_id=${id}`;
   const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${id}`;
 
   const handleCopy = async (link: string) => {
@@ -83,6 +83,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
     }
   };
 
+  console.log("campaign", payer);
   return (
     <div className=" m-10">
       <div>

@@ -6,12 +6,13 @@ import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 
 import { Suspense, useEffect, useState } from "react";
 import Campaign from "@/components/campaign";
-// import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import CreateCampaign from "@/components/createCampaign";
 
 export default function Home() {
   const [program, setProgram] = useState<anchor.Program<anchor.Idl>>();
+
+  const { publicKey, connected } = useWallet();
 
   const network = "devnet";
 
@@ -22,12 +23,26 @@ export default function Home() {
   // const provider = new anchor.AnchorProvider(connection, window.solana, {
   //   preflightCommitment: "confirmed",
   // });
-  const provider = new anchor.AnchorProvider(
-    connection,
-    {} as anchor.Wallet, // Empty wallet for read-only operations
-    { preflightCommitment: "confirmed" }
-  );
+  // const provider = new anchor.AnchorProvider(connection, {} as anchor.Wallet, {
+  //   preflightCommitment: "confirmed",
+  // });
 
+  const getWallet = () => {
+    if (typeof window !== "undefined" && window.solana) {
+      // Browser environment with Solana wallet extension
+      return window.solana;
+    } else {
+      // Node.js environment or deployment
+      // You should replace this with your actual keypair or another wallet implementation
+      return {} as anchor.Wallet;
+    }
+  };
+
+  const wallet = getWallet();
+
+  const provider = new anchor.AnchorProvider(connection, wallet, {
+    preflightCommitment: "confirmed",
+  });
   const programId = new web3.PublicKey(
     "Eis8iYtZBk7HmgBEvgj1soAtCZjqV8mDcRbcqo1U4TPc"
   );
@@ -58,15 +73,21 @@ export default function Home() {
 
   // console.log("Program loaded", program?.account);
 
-  const payer = provider.wallet.publicKey;
-
-  console.log(connection);
+  // const payer = provider.wallet.publicKey;
+  // const payer2 = publicKey ? new web3.PublicKey(publicKey) : null;
+  const payer4 = publicKey
+    ? new web3.PublicKey(provider.wallet.publicKey)
+    : null;
+  // console.log("payer", payer);
+  // console.log("payer2", publicKey);
+  // console.log("payer3", payer2);
+  console.log("payer4", payer4);
   return (
     <div className="h-screen">
       <Navbar />
-      <CreateCampaign program={program} payer={payer} />
-      <Suspense fallback={<div>Loading...</div>}>
-        <Campaign program={program} payer={payer} programId={programId} />
+      <CreateCampaign program={program} payer={payer4} />
+      <Suspense fallback={<div> loading</div>}>
+        <Campaign program={program} payer={payer4} />
       </Suspense>
     </div>
   );

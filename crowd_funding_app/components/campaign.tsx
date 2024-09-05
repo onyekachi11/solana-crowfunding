@@ -12,8 +12,8 @@ import Icon from "./Icon";
 
 interface Campaign {
   program: anchor.Program<anchor.Idl> | any;
-  payer: web3.PublicKey;
-  programId: web3.PublicKey;
+  payer: web3.PublicKey | null;
+  connected?: boolean;
 }
 
 export type CampaignAccount = {
@@ -27,7 +27,7 @@ export type CampaignAccount = {
 
 // Define the account type
 
-const Campaign = ({ program, payer, programId }: Campaign) => {
+const Campaign = ({ program, payer, connected }: Campaign) => {
   const [campaign, setCampaign] = useState<CampaignAccount | null>(null);
   const [campaignId, setCampaignId] = useState("");
   const [amount, setAmount] = useState<number | null>(null);
@@ -99,7 +99,7 @@ const Campaign = ({ program, payer, programId }: Campaign) => {
   }, [program, campaignId]);
 
   const fundCampaign = async (amount: number) => {
-    if (!payer) {
+    if (!payer || !connected) {
       toast.error(`No wallet connected`);
       return;
     }
