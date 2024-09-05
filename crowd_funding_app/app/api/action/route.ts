@@ -41,49 +41,63 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const campaignId = url.searchParams.get("campaign_id");
 
-  const campaign: any = await program2?.account.campaign.fetch(
-    new web3.PublicKey(campaignId as web3.PublicKeyInitData)
-  );
+  if (!campaignId) {
+    return new Response(
+      JSON.stringify({ error: "Missing campaign_id parameter" }),
+      { status: 400, headers: ACTIONS_CORS_HEADERS }
+    );
+  }
 
-  const response: ActionGetResponse = {
-    icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
-    description: campaign?.description,
-    type: "action",
-    label: "Fund Campaign",
-    title: campaign?.title,
-    error: {
-      message: "This blink is not implemented yet",
-    },
-    disabled: campaign.isActive == false,
-    links: {
-      actions: [
-        {
-          label: "Fund 0.1 SOL",
-          href: `/api/action?campaign_id=${campaignId}&fund_amount=0.1`,
-        },
-        {
-          label: "Fund 1 SOL",
-          href: `/api/action?campaign_id=${campaignId}&fund_amount=1`,
-        },
-        {
-          label: "Fund 5 SOL",
-          href: `/api/action?campaign_id=${campaignId}&fund_amount=5`,
-        },
-        {
-          label: "Enter amount to fund",
-          href: `/api/action?campaign_id=${campaignId}&fund_amount={amount}`,
-          parameters: [
-            {
-              name: "amount",
-              label: "Enter amount",
-              required: false,
-            },
-          ],
-        },
-      ],
-    },
-  };
-  return Response.json(response, { headers: ACTIONS_CORS_HEADERS });
+  try {
+    const campaign: any = await program2?.account.campaign.fetch(
+      new web3.PublicKey(campaignId)
+    );
+
+    const response: ActionGetResponse = {
+      icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
+      description: campaign?.description,
+      type: "action",
+      label: "Fund Campaign",
+      title: campaign?.title,
+      disabled: campaign?.isActive === false,
+      links: {
+        actions: [
+          {
+            label: "Fund 0.1 SOL",
+            href: `/api/action?campaign_id=${campaignId}&fund_amount=0.1`,
+          },
+          {
+            label: "Fund 1 SOL",
+            href: `/api/action?campaign_id=${campaignId}&fund_amount=1`,
+          },
+          {
+            label: "Fund 5 SOL",
+            href: `/api/action?campaign_id=${campaignId}&fund_amount=5`,
+          },
+          {
+            label: "Enter amount to fund",
+            href: `/api/action?campaign_id=${campaignId}&fund_amount={amount}`,
+            parameters: [
+              {
+                name: "amount",
+                label: "Enter amount",
+                required: false,
+              },
+            ],
+          },
+        ],
+      },
+    };
+    return new Response(JSON.stringify(response), {
+      headers: ACTIONS_CORS_HEADERS,
+    });
+  } catch (error) {
+    console.error("Error fetching campaign:", error);
+    return new Response(JSON.stringify({ error: "Failed to fetch campaign" }), {
+      status: 500,
+      headers: ACTIONS_CORS_HEADERS,
+    });
+  }
 }
 
 export async function POST(request: Request) {
@@ -95,14 +109,20 @@ export async function POST(request: Request) {
   const campaignId = url.searchParams.get("campaign_id");
 
   if (!program) {
-    return Response.json(
-      { error: "Program not initialized" },
-      { status: 500, headers: ACTIONS_CORS_HEADERS }
+    return new Response(JSON.stringify({ error: "Program not initialized" }), {
+      status: 500,
+      headers: ACTIONS_CORS_HEADERS,
+    });
+  }
+
+  if (!campaignId || !fundAmount) {
+    return new Response(
+      JSON.stringify({ error: "Missing campaign ID or fund amount" }),
+      { status: 400, headers: ACTIONS_CORS_HEADERS }
     );
   }
 
   try {
-    // Prepare the transaction instruction
     const ix = await program.methods
       .fundCampaign(new anchor.BN(Number(fundAmount) * web3.LAMPORTS_PER_SOL))
       .accounts({
@@ -111,17 +131,14 @@ export async function POST(request: Request) {
       })
       .instruction();
 
-    // Create a new transaction and add the instruction
     const transaction = new web3.Transaction();
-
-    // Set the fee payer
     transaction.feePayer = userPubkey;
 
-    // Get a recent blockhash
     const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
 
-    // Serialize the transaction
+    transaction.add(ix);
+
     const serializedTransaction = transaction.serialize({
       requireAllSignatures: false,
       verifySignatures: false,
@@ -131,20 +148,25 @@ export async function POST(request: Request) {
       transaction: serializedTransaction.toString("base64"),
       message: `Transaction prepared for ${userPubkey.toBase58()}`,
     };
-    return Response.json(response, { headers: ACTIONS_CORS_HEADERS });
+    return new Response(JSON.stringify(response), {
+      headers: ACTIONS_CORS_HEADERS,
+    });
   } catch (error) {
     console.error("Error preparing transaction:", error);
-    return Response.json(
-      { error: "Failed to prepare transaction" },
+    return new Response(
+      JSON.stringify({ error: "Failed to prepare transaction" }),
       { status: 500, headers: ACTIONS_CORS_HEADERS }
     );
   }
 }
 
 export async function OPTIONS(request: Request) {
-  return new Response(null, { headers: ACTIONS_CORS_HEADERS });
+  return new Response(null, {
+    headers: {
+      ...ACTIONS_CORS_HEADERS,
+      "Content-Length": "0", // No content in OPTIONS response
+    },
+  });
 }
-
-// export const OPTIONS = GET;
 
 // http://localhost:3000/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
