@@ -1,6 +1,7 @@
+"use client";
 import * as web3 from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Button from "./Button";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useSearchParams } from "next/navigation";

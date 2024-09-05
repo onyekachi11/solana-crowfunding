@@ -4,9 +4,9 @@ import * as anchor from "@coral-xyz/anchor";
 import "dotenv/config";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Campaign from "@/components/campaign";
-import { useSearchParams } from "next/navigation";
+// import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import CreateCampaign from "@/components/createCampaign";
 
@@ -65,7 +65,9 @@ export default function Home() {
     <div className="h-screen">
       <Navbar />
       <CreateCampaign program={program} payer={payer} />
-      <Campaign program={program} payer={payer} programId={programId} />
+      <Suspense fallback={<div>Loading...</div>}>
+        <Campaign program={program} payer={payer} programId={programId} />
+      </Suspense>
     </div>
   );
 }
