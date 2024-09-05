@@ -1,0 +1,7 @@
+solana program deploy --upgrade-authority solana/my_wallet.json target/deploy/crowd_funding.so
+
+solana program deploy --program-id <EXISTING_PROGRAM_ID> --upgrade-authority path/to/upgrade-authority.json path/to/updated_program.so
+
+solana program show <PROGRAM_ID>
+
+anchor idl 5pNi63QgoyQZn4to4DxXtMmAK8VCFT76J3gGNQM7xxv3 --provider.cluster https://api.devnet.solana.com --filepath target/idl/crowdfunding.json
