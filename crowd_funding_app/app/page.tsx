@@ -13,6 +13,9 @@ import Campaign from "@/components/campaign";
 import Navbar from "@/components/Navbar";
 import CreateCampaign from "@/components/createCampaign";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useResizeObserver } from "@/hooks/useResizeObserver";
+import { useCanvasClient } from "@/hooks/useCanvasClient";
+import { SOLANA_CHAINS, SOLANA_DEVNET_CHAIN } from "@solana/wallet-standard";
 
 export default function Home() {
   const [program, setProgram] = useState<anchor.Program<anchor.Idl>>();
@@ -25,6 +28,11 @@ export default function Home() {
 
   const network = "devnet";
 
+  const { client, user, content, isReady } = useCanvasClient();
+  useResizeObserver(client);
+
+  // client.
+
   const wallet = useAnchorWallet();
   const provider = new anchor.AnchorProvider(
     connection,
@@ -34,6 +42,7 @@ export default function Home() {
     }
   );
 
+  console.log(SOLANA_CHAINS);
   // const connection = new web3.Connection(
   //   anchor.web3.clusterApiUrl(network),
   //   "confirmed"
@@ -49,6 +58,8 @@ export default function Home() {
     setVisible(true);
     console.log(wallet);
     console.log(wallets);
+    client?.connectWallet(SOLANA_DEVNET_CHAIN);
+
     // try {
     //   if (wallets.length > 0) {
     //     await connect();

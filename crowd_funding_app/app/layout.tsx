@@ -10,6 +10,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Crowd Funder",
   description: "",
+  viewport: "width=device-width, initial-scale=1",
   other: {
     "dscvr:canvas:version": "vNext",
     "og:image": "https://my-canvas.com/preview-image.png",
