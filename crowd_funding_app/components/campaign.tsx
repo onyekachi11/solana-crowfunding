@@ -43,13 +43,6 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
     }
   }, [searchParams]);
 
-  if (campaignId) {
-    const campaignPublicKey = new web3.PublicKey(campaignId);
-    console.log(campaignPublicKey);
-  }
-
-  // useEffect(() => {}, []);
-
   // const blinkLink = `http://localhost:3000/api/action?campaign_id=${campaignId}`;
   const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaignId}`;
 
@@ -64,10 +57,9 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
     }
   };
 
-  // console.log(payer);
   const getCampaign = async () => {
     if (!program) {
-      console.error("Program not loaded");
+      // console.error("Program not loaded");
       return;
     }
     const toastLoading = toast.loading("Loading...");
@@ -91,7 +83,6 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
 
   useEffect(() => {
     // setTimeout(() => {
-    console.log(campaignId);
     if (campaignId == null) {
       console.error("No campaign id provided");
       return;
@@ -103,10 +94,12 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
   }, [program, campaignId]);
 
   const fundCampaign = async (amount: number) => {
-    if (!payer || !connected) {
+    if (!payer) {
       toast.error(`No wallet connected`);
       return;
     }
+    console.log(payer);
+
     const toastLoading = toast.loading("Loading...");
 
     toastLoading;
@@ -115,10 +108,11 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
       const tx = await program?.methods
         ?.fundCampaign(new anchor.BN(amount))
         .accounts({
-          payer: payer,
+          payer: new web3.PublicKey(payer),
           campaign: campaignId,
+          systemProgram: web3.SystemProgram.programId,
         })
-        // .signers()
+        .signers([])
         .rpc();
 
       await getCampaign();
@@ -184,13 +178,13 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
           <p className="sm:w-[70%] text-[20px]">{campaign?.description}</p>
           <div className="flex flex-col-reverse sm:flex-row justify-between sm:items-center gap-5">
             {campaign?.isActive === true ? (
-              <div className="flex gap-2 items-center">
-                <div className=" p-2 h-[4x] w-[4px] rounded-full bg-green-500 "></div>
+              <div className="flex gap-2 items-center text-gray-400">
+                <div className=" p-2 h-[4x] w-[4px] rounded-full bg-green-300 "></div>
                 <p>Active</p>
               </div>
             ) : (
-              <div className="flex gap-2 items-center">
-                <div className=" p-2 h-[4x] w-[4px] rounded-full bg-red-800 "></div>
+              <div className="flex gap-2 items-center text-gray-400">
+                <div className=" p-2 h-[4x] w-[4px] rounded-full bg-red-400 "></div>
                 <p>Inactive</p>
               </div>
             )}
@@ -215,7 +209,7 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
               <p className="border border-[#aba2a2b8] p-3 w-full sm:w-[70%] overflow-x-auto whitespace-nowrap rounded">
                 <a href={blinkLink}>{blinkLink}</a>
               </p>
-              <div className="sm:w-[30%] max-w-[200px] w-full">
+              <div className="sm:w-[30%] sm:max-w-[200px] w-full">
                 <Button
                   name={isCopied ? "Copied!" : "Copy Link"}
                   onClick={handleCopy}

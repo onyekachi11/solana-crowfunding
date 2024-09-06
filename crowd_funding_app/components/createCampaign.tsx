@@ -89,10 +89,10 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
       <div>
         <Button name="Create Campaign" onClick={() => setOpenModal(true)} />
       </div>
-      {openModal && (
-        <div className="mt-20">
+      <div className="mt-20">
+        {openModal && (
           <Modal>
-            <div className="sm:w-[600px]  h-[800px] py-10 px-10 ">
+            <div className="sm:w-[600px]  h-[700px] py-10 px-10 ">
               <div className="flex flex-col justify-between h-full ">
                 <div className="flex  flex-col gap-8 ">
                   <div className="flex justify-between items-center  mb-3 gap-8">
@@ -165,8 +165,8 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
               </div>
             </div>
           </Modal>
-        </div>
-      )}
+        )}
+      </div>
 
       {openLinkModal && (
         <Modal>
