@@ -48,8 +48,10 @@ export default function Home() {
   const handleConnect = async () => {
     setVisible(true);
 
-    const dscvrResponsee = await client?.connectWallet("solana:103");
-    setDscvrResponse(dscvrResponsee);
+    if (isReady) {
+      const dscvrResponsee = await client?.connectWallet("solana:103");
+      setDscvrResponse(dscvrResponsee);
+    }
 
     try {
       if (wallets.length > 0) {
@@ -73,7 +75,9 @@ export default function Home() {
     const setBodyHeight = (height: number) => {
       document.body.style.height = height ? `${height}px` : "";
     };
-    client && setBodyHeight(1000);
+    if (isReady) {
+      setBodyHeight(1000);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
