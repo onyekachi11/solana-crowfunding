@@ -123,7 +123,8 @@ export default function Home() {
       document.body.style.height = height ? `${height}px` : "";
     };
 
-    client?.isReady && setBodyHeight(1000);
+    setBodyHeight(1000);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
