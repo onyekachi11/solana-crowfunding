@@ -14,6 +14,7 @@ interface Campaign {
   program: anchor.Program<anchor.Idl> | any;
   payer: web3.PublicKey | null;
   connected?: boolean;
+  connection?: web3.Connection;
 }
 
 export type CampaignAccount = {
@@ -27,7 +28,7 @@ export type CampaignAccount = {
 
 // Define the account type
 
-const Campaign = ({ program, payer, connected }: Campaign) => {
+const Campaign = ({ program, payer, connected, connection }: Campaign) => {
   const [campaign, setCampaign] = useState<CampaignAccount | null>(null);
   const [campaignId, setCampaignId] = useState("");
   const [amount, setAmount] = useState<number | null>(null);
@@ -80,6 +81,20 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
       });
     }
   };
+
+  // useEffect(() => {
+  //   const getvalue = async () => {
+  //     const pubkey = campaignId && new web3.PublicKey(campaignId);
+  //     if (pubkey) {
+  //       const value = connection?.getParsedAccountInfo(pubkey, {
+  //         commitment: "confirmed",
+  //         // maxSupportedTransactionVersion: 0,
+  //       });
+  //       console.log(value);
+  //     }
+  //   };
+  //   getvalue();
+  // }, [campaignId]);
 
   useEffect(() => {
     // setTimeout(() => {
