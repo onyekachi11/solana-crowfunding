@@ -37,7 +37,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
 
     toastloading;
 
-    console.log("Campaign", payer);
+    // console.log("Campaign", payer);
 
     try {
       // Create a transaction instruction to create and initialize the campaign account
@@ -83,87 +83,89 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
     }
   };
 
-  console.log("campaign", payer);
+  // console.log("campaign", payer);
   return (
     <div className=" m-10">
       <div>
         <Button name="Create Campaign" onClick={() => setOpenModal(true)} />
       </div>
       {openModal && (
-        <Modal>
-          <div className="w-[600px]  h-[800px] py-10 px-10 ">
-            <div className="flex flex-col justify-between h-full">
-              <div className="flex  flex-col gap-8 ">
-                <div className="flex justify-between items-center">
-                  <p className="font-medium text-[40px] mb-3">
-                    Create a campaign
-                  </p>
-                  <div
-                    onClick={() => setOpenModal(false)}
-                    className="cursor-pointer"
-                  >
-                    <IoCloseCircle size={30} />
+        <div className="mt-20">
+          <Modal>
+            <div className="sm:w-[600px]  h-[800px] py-10 px-10 ">
+              <div className="flex flex-col justify-between h-full ">
+                <div className="flex  flex-col gap-8 ">
+                  <div className="flex justify-between items-center  mb-3 gap-8">
+                    <p className="font-medium sm:text-[40px] text-[25px]">
+                      Create a campaign
+                    </p>
+                    <div
+                      onClick={() => setOpenModal(false)}
+                      className="cursor-pointer"
+                    >
+                      <IoCloseCircle size={30} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="label" className="font-medium text-[20px]">
+                      Title
+                    </label>
+                    <input
+                      placeholder="campaign title "
+                      onChange={(event) => setTitle(event.target.value)}
+                      className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="label" className="font-medium text-[20px]">
+                      Description
+                    </label>
+                    <input
+                      type="textarea"
+                      placeholder="campaign description"
+                      onChange={(event) => setDescription(event.target.value)}
+                      className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="label" className="font-medium text-[20px]">
+                      Campaign Goal (SOL)
+                    </label>
+                    <input
+                      type="campaign goal"
+                      placeholder="amount"
+                      onChange={(event) =>
+                        setFundingGoal(Number(event.target.value))
+                      }
+                      className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
+                    />
                   </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="label" className="font-medium text-[20px]">
-                    Title
-                  </label>
-                  <input
-                    placeholder="campaign title "
-                    onChange={(event) => setTitle(event.target.value)}
-                    className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="label" className="font-medium text-[20px]">
-                    Description
-                  </label>
-                  <input
-                    type="textarea"
-                    placeholder="campaign description"
-                    onChange={(event) => setDescription(event.target.value)}
-                    className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="label" className="font-medium text-[20px]">
-                    Campaign Goal (SOL)
-                  </label>
-                  <input
-                    type="campaign goal"
-                    placeholder="amount"
-                    onChange={(event) =>
-                      setFundingGoal(Number(event.target.value))
+                <Button
+                  name="Submit"
+                  onClick={() => {
+                    if (
+                      title == null ||
+                      description == null ||
+                      fundingGoal == null
+                    ) {
+                      toast(
+                        <span>
+                          <p>Fill up inputs</p>
+                        </span>,
+                        {
+                          icon: <Icon />,
+                        }
+                      );
+                    } else {
+                      createACampaign(title, description, fundingGoal);
                     }
-                    className="bg-transparent border border-[#aba2a2b8] outline-none rounded-md px-6 py-3 w-full"
-                  />
-                </div>
+                  }}
+                />
               </div>
-              <Button
-                name="Submit"
-                onClick={() => {
-                  if (
-                    title == null ||
-                    description == null ||
-                    fundingGoal == null
-                  ) {
-                    toast(
-                      <span>
-                        <p>Fill up inputs</p>
-                      </span>,
-                      {
-                        icon: <Icon />,
-                      }
-                    );
-                  } else {
-                    createACampaign(title, description, fundingGoal);
-                  }
-                }}
-              />
             </div>
-          </div>
-        </Modal>
+          </Modal>
+        </div>
       )}
 
       {openLinkModal && (

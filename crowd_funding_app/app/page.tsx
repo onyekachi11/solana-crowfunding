@@ -83,7 +83,7 @@ export default function Home() {
   // console.log("payer3", payer2);
   console.log("payer4", payer4);
   return (
-    <div className="h-screen">
+    <div className="h-full">
       <Navbar />
       <CreateCampaign program={program} payer={payer4} />
       <Suspense fallback={<div> loading</div>}>

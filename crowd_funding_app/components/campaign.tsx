@@ -43,7 +43,12 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
     }
   }, [searchParams]);
 
-  const campaignPublicKey = campaignId && new web3.PublicKey(campaignId);
+  if (campaignId) {
+    const campaignPublicKey = new web3.PublicKey(campaignId);
+    console.log(campaignPublicKey);
+  }
+
+  // useEffect(() => {}, []);
 
   // const blinkLink = `http://localhost:3000/api/action?campaign_id=${campaignId}`;
   const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaignId}`;
@@ -59,19 +64,17 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
     }
   };
 
-  console.log(payer);
+  // console.log(payer);
   const getCampaign = async () => {
     if (!program) {
-      // console.error("Program not loaded");
+      console.error("Program not loaded");
       return;
     }
     const toastLoading = toast.loading("Loading...");
 
     toastLoading;
     try {
-      const campaignAccount = await program?.account.campaign.fetch(
-        campaignPublicKey
-      );
+      const campaignAccount = await program?.account.campaign.fetch(campaignId);
 
       setCampaign(campaignAccount);
       toast.success("Campaign fetched successfully!", {
@@ -88,8 +91,9 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
 
   useEffect(() => {
     // setTimeout(() => {
-    if (!campaignId) {
-      // console.error("No campaign id provided");
+    console.log(campaignId);
+    if (campaignId == null) {
+      console.error("No campaign id provided");
       return;
     } else {
       getCampaign();
@@ -112,7 +116,7 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
         ?.fundCampaign(new anchor.BN(amount))
         .accounts({
           payer: payer,
-          campaign: campaignPublicKey,
+          campaign: campaignId,
         })
         // .signers()
         .rpc();
@@ -141,7 +145,7 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
         .withdrawFund()
         .accounts({
           creator: payer,
-          campaign: new web3.PublicKey(campaignId),
+          campaign: campaignId,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
         .rpc();
@@ -165,9 +169,11 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
     <>
       {campaign && (
         <div className=" m-10  p-7 rounded-sm glass flex flex-col gap-5 relative ">
-          <div className="flex justify-between items-center">
-            <p className="text-[40px] font-semibold">{campaign?.title}</p>
-            <p>
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center ">
+            <p className="sm:text-[40px] text-[30px] font-semibold">
+              {campaign?.title}
+            </p>
+            <p className="text-gray-400">
               Goal:{" "}
               <span>{Number(campaign.fundingGoal) / LAMPORTS_PER_SOL} </span>{" "}
               SOL /{" "}
@@ -175,8 +181,8 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
               Funded
             </p>
           </div>
-          <p className="w-[70%] text-[20px]">{campaign?.description}</p>
-          <div className="flex justify-between items-center">
+          <p className="sm:w-[70%] text-[20px]">{campaign?.description}</p>
+          <div className="flex flex-col-reverse sm:flex-row justify-between sm:items-center gap-5">
             {campaign?.isActive === true ? (
               <div className="flex gap-2 items-center">
                 <div className=" p-2 h-[4x] w-[4px] rounded-full bg-green-500 "></div>
@@ -189,7 +195,7 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
               </div>
             )}
             {campaign?.isActive === true && (
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-col sm:flex-row">
                 <Button
                   name="Fund Campaign"
                   onClick={() => setOpenModal(true)}
@@ -205,11 +211,11 @@ const Campaign = ({ program, payer, connected }: Campaign) => {
               <p className="font-medium text-[20px] ">Blink link</p>
             </div>
 
-            <div className="flex justify-between items-center  mt-4 gap-5 w-full">
-              <p className="border border-[#aba2a2b8] p-3 w-[80%] overflow-x-auto whitespace-nowrap rounded">
+            <div className="flex  flex-col sm:flex-row justify-between items-center  mt-4 gap-5 w-full">
+              <p className="border border-[#aba2a2b8] p-3 w-full sm:w-[70%] overflow-x-auto whitespace-nowrap rounded">
                 <a href={blinkLink}>{blinkLink}</a>
               </p>
-              <div className="w-[20%]">
+              <div className="sm:w-[30%] max-w-[200px] w-full">
                 <Button
                   name={isCopied ? "Copied!" : "Copy Link"}
                   onClick={handleCopy}
