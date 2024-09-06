@@ -55,7 +55,7 @@ export default function Home() {
   // });
 
   const handleConnect = async () => {
-    setVisible(true);
+    // setVisible(true);
     console.log(wallet);
     console.log(wallets);
     client?.connectWallet(SOLANA_DEVNET_CHAIN);
@@ -117,6 +117,15 @@ export default function Home() {
   //   fetchProgram();
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, []);
+
+  useEffect(() => {
+    const setBodyHeight = (height: number) => {
+      document.body.style.height = height ? `${height}px` : "";
+    };
+
+    client?.isReady && setBodyHeight(1000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!provider) return;
