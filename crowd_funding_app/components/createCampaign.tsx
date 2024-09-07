@@ -76,6 +76,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
           payer: payer,
           // systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
+        .signers([])
         .rpc();
       // .instruction();
 
@@ -117,13 +118,16 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     const amount = new anchor.BN(fundingGoal * web3.LAMPORTS_PER_SOL);
     const toastloading = toast.loading("Loading...");
 
-    toastloading;
+    // toastloading;
 
     if (isReady) {
       if (!payer2) {
         toast.error("no payer");
         return null;
       }
+
+      toastloading;
+
       // const tnx = await createtx();
 
       const unsignedTx = await createUnsignedTransaction(
@@ -132,17 +136,25 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         amount
       );
 
-      await client?.signAndSendTransaction({
+      const response = await client?.signAndSendTransaction({
         unsignedTx: unsignedTx,
         chainId: "solana:103",
-        awaitCommitment: "confirmed",
       });
+
+      if (response?.untrusted.success === false) {
+        toast.error(`Transaction failed`, {
+          id: toastloading,
+        });
+        return null;
+      }
     } else {
       try {
         if (!payer) {
           toast.error("no payer");
           return null;
         }
+        toastloading;
+
         const tx = await program?.methods
           ?.createCampaign(title, description, amount)
           .accounts({

@@ -18,6 +18,7 @@ import { useCanvasClient } from "@/hooks/useCanvasClient";
 import { CanvasInterface, CanvasClient } from "@dscvr-one/canvas-client-sdk";
 
 import { SOLANA_CHAINS, SOLANA_DEVNET_CHAIN } from "@solana/wallet-standard";
+import { toast } from "react-toastify";
 
 export default function Home() {
   const [program, setProgram] = useState<anchor.Program<anchor.Idl>>();
@@ -47,8 +48,15 @@ export default function Home() {
 
   const handleConnect = async () => {
     if (isReady) {
-      const dscvrResponsee = await client?.connectWallet("solana:103");
-      setDscvrResponse(dscvrResponsee);
+      const response = await client?.connectWallet("solana:103");
+
+      if (response?.untrusted.success == false) {
+        toast.error("Could not connect");
+        console.error("Failed to connect wallet", response.untrusted?.error);
+        return;
+      } else {
+        setDscvrResponse(response);
+      }
     } else {
       try {
         setVisible(true);
@@ -120,6 +128,7 @@ export default function Home() {
       <Navbar connect={handleConnect} />
       <p>{dscvrResponse?.untrusted?.address}</p>
       <p>{isReady ? "true" : "false"}</p>
+      <p>{program ? "prgram true" : "program false"}</p>
       <CreateCampaign program={program} payer={payer} payer2={payer2} />
       <Suspense fallback={<div> loading</div>}>
         <Campaign program={program} payer={payer} />
