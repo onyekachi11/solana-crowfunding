@@ -49,7 +49,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
           campaign: campaignKeypair.publicKey,
           payer: payer,
         })
-        .signers([campaignKeypair])
+        // .signers([campaignKeypair])
         .rpc();
 
       return tx;
