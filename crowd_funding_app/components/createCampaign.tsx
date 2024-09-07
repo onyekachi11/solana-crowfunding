@@ -25,33 +25,84 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
 
   const { client, user, content, isReady } = useCanvasClient();
 
-  // Helper function to create unsigned transaction for WalletConnect
+  // // Helper function to create unsigned transaction for WalletConnect
+  // const createUnsignedTransaction = async (
+  //   campaignPublicKey: web3.PublicKey,
+  //   payer: web3.PublicKey,
+  //   amount: anchor.BN
+  // ) => {
+  //   // Implementation depends on your specific needs
+  //   // This is a placeholder
+  //   const connection = new web3.Connection(web3.clusterApiUrl("devnet"));
+  //   const recentBlockhash = await connection.getRecentBlockhash();
+
+  //   const ix = await program?.methods
+  //     .createCampaign(title, description, new anchor.BN(amount))
+  //     .accounts({
+  //       campaign: campaignPublicKey,
+  //       payer: payer,
+  //       systemProgram: web3.SystemProgram.programId,
+  //     })
+  //     .instruction();
+
+  //   const tx = new web3.Transaction();
+
+  //   tx.recentBlockhash = recentBlockhash.blockhash;
+  //   tx.feePayer = payer && payer;
+
+  //   tx.add(ix as web3.TransactionInstruction);
+  //   return tx.serialize({ verifySignatures: false }).toString("base64");
+  // };
+
   const createUnsignedTransaction = async (
     campaignPublicKey: web3.PublicKey,
     payer: web3.PublicKey,
     amount: anchor.BN
   ) => {
-    // Implementation depends on your specific needs
-    // This is a placeholder
-    const connection = new web3.Connection(web3.clusterApiUrl("devnet"));
-    const recentBlockhash = await connection.getRecentBlockhash();
+    try {
+      // Connect to Solana cluster (ensure this is correct: devnet, testnet, mainnet)
+      const connection = new web3.Connection(web3.clusterApiUrl("devnet"));
 
-    const ix = await program?.methods
-      .createCampaign(title, description, new anchor.BN(amount))
-      .accounts({
-        campaign: campaignPublicKey,
-        payer: payer,
-        systemProgram: web3.SystemProgram.programId,
-      })
-      .instruction();
+      // Get the most recent blockhash from the Solana network
+      const { blockhash } = await connection.getRecentBlockhash();
+      console.log("Recent Blockhash:", blockhash); // Log blockhash for debugging
 
-    const tx = new web3.Transaction();
+      // Create the transaction instruction using your Anchor program
+      const ix = await program?.methods
+        .createCampaign(title, description, amount)
+        .accounts({
+          campaign: campaignPublicKey,
+          payer: payer,
+          systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
+        })
+        .instruction();
 
-    tx.recentBlockhash = recentBlockhash.blockhash;
-    tx.feePayer = payer && payer;
+      // Check if instruction is valid
+      if (!ix) {
+        throw new Error("Failed to create transaction instruction.");
+      }
 
-    tx.add(ix as web3.TransactionInstruction);
-    return tx.serialize({ verifySignatures: false }).toString("base64");
+      // Create a new transaction object
+      const tx = new web3.Transaction();
+      tx.recentBlockhash = blockhash; // Set the recent blockhash
+      tx.feePayer = payer; // Set the payer for transaction fees
+
+      // Add the instruction to the transaction
+      tx.add(ix as web3.TransactionInstruction);
+      console.log("Transaction object created:", tx); // Log transaction object for debugging
+
+      // Serialize the transaction for sending to DSCVR Canvas or web client
+      const serializedTx = tx
+        .serialize({ verifySignatures: false })
+        .toString("base64");
+      console.log("Serialized transaction (base64):", serializedTx); // Log serialized tx for verification
+
+      // Return the serialized transaction
+      return serializedTx;
+    } catch (error: any) {
+      console.error("Error creating unsigned transaction:", error);
+      throw new Error(`Transaction creation failed: ${error}`);
+    }
   };
 
   const createACampaign = async (
@@ -60,6 +111,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
     fundingGoal: number
   ) => {
     if (!payer) {
+      toast.error("no payer");
       return null;
     }
     // Create a new keypair for the campaign account
@@ -68,20 +120,6 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
     const toastloading = toast.loading("Loading...");
 
     toastloading;
-
-    // console.log("Campaign", payer);
-
-    //   const connectionEndpoint = web3.clusterApiUrl("devnet");
-    //   const connection = new web3.Connection(connectionEndpoint);
-    //   const blockhash = await connection
-    //     .getLatestBlockhash()
-    //     .then((res) => res.blockhash);
-
-    //   const tx = new web3.Transaction();
-    //     tx.recentBlockhash = blockhash;
-    // tx.feePayer = payer;
-
-    //   tx.add();
 
     if (isReady) {
       // const tnx = await createtx();
@@ -102,7 +140,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
         const tx = await program?.methods
           ?.createCampaign(title, description, amount)
           .accounts({
-            campaign: campaignKeypair.publicKey,
+            campaign: new web3.PublicKey(campaignKeypair.publicKey),
             payer: payer,
           })
           .signers([campaignKeypair])
