@@ -51,18 +51,18 @@ export default function Home() {
     if (isReady) {
       const dscvrResponsee = await client?.connectWallet("solana:103");
       setDscvrResponse(dscvrResponsee);
-    }
-
-    try {
-      if (wallets.length > 0) {
-        await connect();
-      } else {
-        console.error("No wallets available");
-        // You might want to show a user-friendly message here
+    } else {
+      try {
+        if (wallets.length > 0) {
+          await connect();
+        } else {
+          console.error("No wallets available");
+          // You might want to show a user-friendly message here
+        }
+      } catch (error) {
+        console.error("Failed to connect wallet:", error);
+        // Handle the error appropriately (e.g., show an error message to the user)
       }
-    } catch (error) {
-      console.error("Failed to connect wallet:", error);
-      // Handle the error appropriately (e.g., show an error message to the user)
     }
   };
 
