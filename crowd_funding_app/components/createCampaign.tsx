@@ -111,10 +111,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     description: string,
     fundingGoal: number
   ) => {
-    if (!payer || !payer2) {
-      toast.error("no payer");
-      return null;
-    }
     // Create a new keypair for the campaign account
     const campaignKeypair = anchor.web3.Keypair.generate();
     const amount = new anchor.BN(fundingGoal * web3.LAMPORTS_PER_SOL);
@@ -123,11 +119,15 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     toastloading;
 
     if (isReady) {
+      if (!payer2) {
+        toast.error("no payer");
+        return null;
+      }
       // const tnx = await createtx();
 
       const unsignedTx = await createUnsignedTransaction(
         campaignKeypair.publicKey,
-        payer,
+        payer2,
         amount
       );
 
@@ -138,6 +138,10 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       });
     } else {
       try {
+        if (!payer) {
+          toast.error("no payer");
+          return null;
+        }
         const tx = await program?.methods
           ?.createCampaign(title, description, amount)
           .accounts({

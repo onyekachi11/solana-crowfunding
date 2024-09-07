@@ -26,9 +26,13 @@ const Navbar = ({ connect }: any) => {
       <p className="font-semibold text-[20px] sm:text-[30px]">Crowd Funder</p>
       <div className="flex items-center gap-2 flex-col">
         <BalanceDisplay />
-        <WalletMultiButton />
+
+        {isReady ? (
+          <Button name="Connect wallet" onClick={() => connect()} />
+        ) : (
+          <WalletMultiButton />
+        )}
         {/* <WalletDisconnectButton /> */}
-        <Button name="Connect wallet" onClick={() => connect()} />
       </div>
     </div>
   );
