@@ -46,13 +46,12 @@ export default function Home() {
   );
 
   const handleConnect = async () => {
-    setVisible(true);
-
     if (isReady) {
       const dscvrResponsee = await client?.connectWallet("solana:103");
       setDscvrResponse(dscvrResponsee);
     } else {
       try {
+        setVisible(true);
         if (wallets.length > 0) {
           await connect();
         } else {

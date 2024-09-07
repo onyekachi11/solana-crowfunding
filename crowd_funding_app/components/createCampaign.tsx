@@ -7,6 +7,7 @@ import Button from "./Button";
 import toast from "react-hot-toast";
 import Icon from "./Icon";
 import { IoCloseCircle } from "react-icons/io5";
+import { useCanvasClient } from "@/hooks/useCanvasClient";
 
 interface Campaign {
   program: anchor.Program<anchor.Idl> | undefined;
@@ -21,6 +22,8 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
   const [title, setTitle] = useState<string | null>();
   const [description, setDescription] = useState<string | null>();
   const [fundingGoal, setFundingGoal] = useState<number | null>();
+
+  const { client, user, content, isReady } = useCanvasClient();
 
   const createACampaign = async (
     title: string,
@@ -39,8 +42,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
 
     // console.log("Campaign", payer);
 
-    try {
-      // Create a transaction instruction to create and initialize the campaign account
+    const createtx = async () => {
       const tx = await program?.methods
         ?.createCampaign(title, description, amount)
         .accounts({
@@ -50,19 +52,33 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
         .signers([campaignKeypair])
         .rpc();
 
-      setId(campaignKeypair.publicKey.toString());
-      setOpenModal(false);
-      setOpenLinkModal(true);
-      toast.success(`Campaign created successfully!`, {
-        id: toastloading,
-      });
-
       return tx;
-    } catch (error) {
-      console.error(error);
-      toast.error(`Error creating campaign`, {
-        id: toastloading,
+    };
+
+    if (isReady) {
+      const tnx = await createtx();
+
+      client?.signAndSendTransaction({
+        unsignedTx: tnx as string,
+        chainId: "solana:103",
       });
+    } else {
+      try {
+        const tnx = await createtx();
+        setId(campaignKeypair.publicKey.toString());
+        setOpenModal(false);
+        setOpenLinkModal(true);
+        toast.success(`Campaign created successfully!`, {
+          id: toastloading,
+        });
+
+        return tnx;
+      } catch (error) {
+        console.error(error);
+        toast.error(`Error creating campaign`, {
+          id: toastloading,
+        });
+      }
     }
   };
 
