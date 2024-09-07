@@ -25,6 +25,35 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
 
   const { client, user, content, isReady } = useCanvasClient();
 
+  // Helper function to create unsigned transaction for WalletConnect
+  const createUnsignedTransaction = async (
+    campaignPublicKey: web3.PublicKey,
+    payer: web3.PublicKey,
+    amount: anchor.BN
+  ) => {
+    // Implementation depends on your specific needs
+    // This is a placeholder
+    const connection = new web3.Connection(web3.clusterApiUrl("devnet"));
+    const recentBlockhash = await connection.getRecentBlockhash();
+
+    const ix = await program?.methods
+      .createCampaign(title, description, new anchor.BN(amount))
+      .accounts({
+        campaign: campaignPublicKey,
+        payer: payer,
+        systemProgram: web3.SystemProgram.programId,
+      })
+      .instruction();
+
+    const tx = new web3.Transaction();
+
+    tx.recentBlockhash = recentBlockhash.blockhash;
+    tx.feePayer = payer && payer;
+
+    tx.add(ix as web3.TransactionInstruction);
+    return tx.serialize({ verifySignatures: false }).toString("base64");
+  };
+
   const createACampaign = async (
     title: string,
     description: string,
@@ -42,29 +71,42 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
 
     // console.log("Campaign", payer);
 
-    const createtx = async () => {
-      const tx = await program?.methods
-        ?.createCampaign(title, description, amount)
-        .accounts({
-          campaign: campaignKeypair.publicKey,
-          payer: payer,
-        })
-        // .signers([campaignKeypair])
-        .rpc();
+    //   const connectionEndpoint = web3.clusterApiUrl("devnet");
+    //   const connection = new web3.Connection(connectionEndpoint);
+    //   const blockhash = await connection
+    //     .getLatestBlockhash()
+    //     .then((res) => res.blockhash);
 
-      return tx;
-    };
+    //   const tx = new web3.Transaction();
+    //     tx.recentBlockhash = blockhash;
+    // tx.feePayer = payer;
+
+    //   tx.add();
 
     if (isReady) {
-      const tnx = await createtx();
+      // const tnx = await createtx();
+
+      const unsignedTx = await createUnsignedTransaction(
+        campaignKeypair.publicKey,
+        payer,
+        amount
+      );
 
       client?.signAndSendTransaction({
-        unsignedTx: tnx as string,
+        unsignedTx: unsignedTx,
         chainId: "solana:103",
+        awaitCommitment: "confirmed",
       });
     } else {
       try {
-        const tnx = await createtx();
+        const tx = await program?.methods
+          ?.createCampaign(title, description, amount)
+          .accounts({
+            campaign: campaignKeypair.publicKey,
+            payer: payer,
+          })
+          .signers([campaignKeypair])
+          .rpc();
         setId(campaignKeypair.publicKey.toString());
         setOpenModal(false);
         setOpenLinkModal(true);
@@ -72,7 +114,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
           id: toastloading,
         });
 
-        return tnx;
+        return tx;
       } catch (error) {
         console.error(error);
         toast.error(`Error creating campaign`, {
