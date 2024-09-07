@@ -74,8 +74,8 @@ export default function Home() {
     const setBodyHeight = (height: number) => {
       document.body.style.height = height ? `${height}px` : "";
     };
-    if (isReady) {
-      setBodyHeight(1000);
+    if (!isReady) {
+      setBodyHeight(900);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
