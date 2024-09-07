@@ -12,9 +12,10 @@ import { useCanvasClient } from "@/hooks/useCanvasClient";
 interface Campaign {
   program: anchor.Program<anchor.Idl> | undefined;
   payer: web3.PublicKey | null;
+  payer2: web3.PublicKey | null;
 }
 
-const CreateCampaign = ({ program, payer }: Campaign) => {
+const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
   const [openModal, setOpenModal] = useState(false);
   const [openLinkModal, setOpenLinkModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -110,7 +111,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
     description: string,
     fundingGoal: number
   ) => {
-    if (!payer) {
+    if (!payer || !payer2) {
       toast.error("no payer");
       return null;
     }
@@ -130,7 +131,7 @@ const CreateCampaign = ({ program, payer }: Campaign) => {
         amount
       );
 
-      client?.signAndSendTransaction({
+      await client?.signAndSendTransaction({
         unsignedTx: unsignedTx,
         chainId: "solana:103",
         awaitCommitment: "confirmed",

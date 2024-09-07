@@ -111,13 +111,16 @@ export default function Home() {
     ? new web3.PublicKey(provider.wallet.publicKey)
     : null;
 
+  const payer2 =
+    dscvrResponse && new web3.PublicKey(dscvrResponse?.untrusted?.address);
+
   // console.log("payer4", payer);
   return (
     <div className="h-full">
       <Navbar connect={handleConnect} />
       <p>{dscvrResponse?.untrusted?.address}</p>
       <p>{isReady ? "true" : "false"}</p>
-      <CreateCampaign program={program} payer={payer} />
+      <CreateCampaign program={program} payer={payer} payer2={payer2} />
       <Suspense fallback={<div> loading</div>}>
         <Campaign program={program} payer={payer} />
       </Suspense>
