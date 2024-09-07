@@ -117,6 +117,7 @@ export default function Home() {
     <div className="h-full">
       <Navbar connect={handleConnect} />
       <p>{dscvrResponse?.untrusted?.address}</p>
+      <p>{isReady}</p>
       <CreateCampaign program={program} payer={payer} />
       <Suspense fallback={<div> loading</div>}>
         <Campaign program={program} payer={payer} />
