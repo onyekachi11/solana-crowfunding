@@ -42,7 +42,7 @@ export default function Home() {
   const connections = new web3.Connection("https://api.dscvr.one");
 
   const provider = new anchor.AnchorProvider(
-    isReady ? connections : connection,
+    connection,
     wallet as anchor.Wallet,
     {
       preflightCommitment: "confirmed",

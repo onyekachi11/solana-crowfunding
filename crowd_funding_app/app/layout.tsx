@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   other: {
     "dscvr:canvas:version": "vNext",
     "og:image": "https://my-canvas.com/preview-image.png",
+    "Content-Security-Policy":
+      "default-src 'self'; connect-src 'self' https://api.dscvr.one https://api1.stg.dscvr.one https://*.helius-rpc.com https://api.devnet.solana.com;",
   },
 };
 
