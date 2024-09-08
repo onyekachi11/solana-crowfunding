@@ -11,13 +11,11 @@ const Page = () => {
       <Suspense fallback={<p>Loading...</p>}>
         <MainApp />
       </Suspense>
-      {/* <Suspense fallback={<p>Loading...</p>}> */}
       <Script
         src="https://www.googletagmanager.com/gtag/js"
         strategy="afterInteractive"
         nonce={nonce}
       />
-      {/* </Suspense> */}
     </>
   );
 };

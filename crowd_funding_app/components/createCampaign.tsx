@@ -61,14 +61,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     amount: anchor.BN
   ) => {
     try {
-      // // Connect to Solana cluster (ensure this is correct: devnet, testnet, mainnet)
-      // const connection = new web3.Connection(web3.clusterApiUrl("devnet"));
-
-      // // Get the most recent blockhash from the Solana network
-      // const { blockhash } = await connection.getRecentBlockhash();
-      // console.log("Recent Blockhash:", blockhash); // Log blockhash for debugging
-
-      // Create the transaction instruction using your Anchor program
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
@@ -78,29 +70,11 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         })
         .signers([])
         .rpc();
-      // .instruction();
 
       // Check if instruction is valid
       if (!ix) {
         throw new Error("Failed to create transaction instruction.");
       }
-
-      // // Create a new transaction object
-      // const tx = new web3.Transaction();
-      // tx.recentBlockhash = blockhash; // Set the recent blockhash
-      // tx.feePayer = payer; // Set the payer for transaction fees
-
-      // // Add the instruction to the transaction
-      // tx.add(ix as web3.TransactionInstruction);
-      // console.log("Transaction object created:", tx); // Log transaction object for debugging
-
-      // // Serialize the transaction for sending to DSCVR Canvas or web client
-      // const serializedTx = tx
-      //   .serialize({ verifySignatures: false })
-      //   .toString("base64");
-      // console.log("Serialized transaction (base64):", serializedTx); // Log serialized tx for verification
-
-      // Return the serialized transaction
       return ix;
     } catch (error: any) {
       console.error("Error creating unsigned transaction:", error);

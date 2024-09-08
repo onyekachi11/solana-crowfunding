@@ -30,16 +30,12 @@ export default function MainApp() {
 
   const { setVisible } = useWalletModal();
 
-  const network = "devnet";
-
   const { client, user, content, isReady } = useCanvasClient();
   useResizeObserver(client);
 
   // client.
 
   const wallet = useAnchorWallet();
-
-  const connections = new web3.Connection("https://api.dscvr.one");
 
   const provider = new anchor.AnchorProvider(
     connection,
