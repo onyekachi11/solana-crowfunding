@@ -90,7 +90,10 @@ export default function Home() {
 
   // Load program
   useEffect(() => {
-    if (!provider) return;
+    if (!provider) {
+      console.error("No provider");
+      return;
+    }
 
     const fetchProgram = async () => {
       try {
@@ -112,6 +115,9 @@ export default function Home() {
     };
 
     fetchProgram();
+
+    isReady && fetchProgram();
+    client && fetchProgram();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
