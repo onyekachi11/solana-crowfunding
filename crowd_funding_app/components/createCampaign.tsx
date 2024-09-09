@@ -28,16 +28,22 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
   const createUnsignedTransaction = async (
     campaignKeypair: web3.Keypair,
-    signer: web3.PublicKey,
+    // signer: web3.PublicKey,
     amount: anchor.BN
   ) => {
-    console.log(signer);
+    console.log(payer2);
+    console.log(payer2 && new anchor.web3.PublicKey(payer2.toString()));
     try {
+      if (!payer2) {
+        console.error("no payer");
+        return;
+      }
+
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
           campaign: campaignKeypair.publicKey,
-          payer: signer,
+          payer: new anchor.web3.PublicKey(payer2.toString()),
           // systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([campaignKeypair])
@@ -52,13 +58,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       console.error("Error creating unsigned transaction:", error);
       throw new Error(`Transaction creation failed: ${error}`);
     }
-  };
-
-  const confirmOptions: web3.ConfirmOptions = {
-    commitment: "confirmed",
-    maxRetries: 5, // Retry the confirmation multiple times
-    preflightCommitment: "processed", // Preflight the transaction before confirmation
-    // timeout: 60000, // Increase timeout to 60 seconds
   };
 
   const createACampaign = async (
@@ -90,24 +89,32 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         return null;
       }
 
-      toastloading;
+      try {
+        toastloading;
 
-      const unsignedTx = await createUnsignedTransaction(
-        campaignKeypair,
-        new web3.PublicKey(payer2),
-        amount
-      );
+        const unsignedTx = (await createUnsignedTransaction(
+          campaignKeypair,
+          // new web3.PublicKey(payer2),
+          amount
+        )) as string;
 
-      const response = await client?.signAndSendTransaction({
-        unsignedTx: unsignedTx,
-        chainId: "solana:103",
-      });
-
-      if (response?.untrusted.success === false) {
-        toast.error(`Transaction failed`, {
-          id: toastloading,
+        const response = await client?.signAndSendTransaction({
+          unsignedTx: unsignedTx,
+          chainId: "solana:103",
         });
-        return null;
+        if (response?.untrusted.success === true) {
+          toast.error(`Transaction failed`, {
+            id: toastloading,
+          });
+          return null;
+        }
+      } catch (e) {
+        if (e) {
+          toast.error(`Transaction failed`, {
+            id: toastloading,
+          });
+          return null;
+        }
       }
     } else {
       try {
