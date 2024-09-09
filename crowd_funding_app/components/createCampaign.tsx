@@ -109,14 +109,16 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
           chainId: "solana:103",
         });
         if (response?.untrusted.success === true) {
-          toast.error(`Transaction failed`, {
+          setId(campaignKeypair.publicKey.toString());
+          setOpenModal(false);
+          setOpenLinkModal(true);
+          toast.success(`Campaign created successfully!`, {
             id: toastloading,
           });
-          return null;
         }
       } catch (e) {
         if (e) {
-          toast.error(`Transaction failed`, {
+          toast.error(`FAILED`, {
             id: toastloading,
           });
           return null;
