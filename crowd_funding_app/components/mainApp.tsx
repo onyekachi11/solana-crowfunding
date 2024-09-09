@@ -117,7 +117,7 @@ export default function MainApp() {
   const payer = publicKey ? new web3.PublicKey(publicKey) : null;
   //   const payer3 =program ? program?.provider.publicKey : null
 
-  const payer2 = dscvrResponse?.untrusted;
+  const payer2 = dscvrResponse?.untrusted.address;
 
   console.log(payer?.toString(), payer2);
 

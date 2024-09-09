@@ -39,10 +39,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         return;
       }
 
-      // const response2: any = await client?.connectWallet("solana:103");
-
-      // const payer2PublicKey = new web3.PublicKey(response2?.untrusted?.address);
-
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
