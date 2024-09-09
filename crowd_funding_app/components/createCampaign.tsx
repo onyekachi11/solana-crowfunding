@@ -34,11 +34,15 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     console.log(payer2);
     console.log(payer2 && payer2.toString());
     console.log(payer2 && new web3.PublicKey(payer2.toString()));
+    console.log(payer2 && new web3.PublicKey(payer2.toBuffer()));
+
     try {
       if (!payer2) {
         console.error("no payer");
         return;
       }
+
+      const payer2PublicKey = new web3.PublicKey(payer2.toBuffer());
 
       const ix = await program?.methods
         .createCampaign(title, description, amount)
@@ -101,6 +105,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
         const response = await client?.signAndSendTransaction({
           unsignedTx: unsignedTx,
+          awaitCommitment: "confirmed",
           chainId: "solana:103",
         });
         if (response?.untrusted.success === true) {
