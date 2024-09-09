@@ -33,17 +33,16 @@ export default function MainApp() {
   const { client, user, content, isReady } = useCanvasClient();
   useResizeObserver(client);
 
-  // client.
-
   const wallet = useAnchorWallet();
 
-  const provider = new anchor.AnchorProvider(
-    connection,
-    wallet as anchor.Wallet,
-    {
-      preflightCommitment: "confirmed",
-    }
+  const connections = new web3.Connection(
+    web3.clusterApiUrl("devnet"),
+    "confirmed"
   );
+
+  //   const provider = new anchor.AnchorProvider(connections, window.solana, {
+  //     preflightCommitment: "confirmed",
+  //   });
 
   const handleConnect = async () => {
     if (isReady) {
@@ -89,45 +88,39 @@ export default function MainApp() {
 
   // Load program
   useEffect(() => {
-    if (!provider) {
-      console.error("No provider");
-      return;
-    }
+    if (typeof window !== "undefined" && window.solana) {
+      // Ensure that window.solana exists before creating the provider
+      const provider = new anchor.AnchorProvider(connection, window.solana, {
+        preflightCommitment: "confirmed",
+      });
 
-    const fetchProgram = async () => {
-      try {
-        const idl = await anchor.Program.fetchIdl<anchor.Idl>(
-          programId,
-          provider
-        );
-        if (idl) {
-          const crowdFunderProgram = new anchor.Program<anchor.Idl>(
-            idl,
-            // programId,
-            provider
-          );
-          setProgram(crowdFunderProgram);
+      // Fetch the program or do other actions that require the provider here
+      const fetchProgram = async () => {
+        try {
+          const idl = await anchor.Program.fetchIdl(programId, provider);
+          if (idl) {
+            const crowdFunderProgram = new anchor.Program(idl, provider);
+            setProgram(crowdFunderProgram);
+          }
+        } catch (error) {
+          console.error("Error fetching IDL:", error);
         }
-      } catch (error) {
-        console.error("Error fetching IDL:", error);
-      }
-    };
+      };
 
-    fetchProgram();
-
-    isReady && fetchProgram();
-    client && fetchProgram();
+      fetchProgram();
+    } else {
+      console.error("Solana wallet not found");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connection]);
 
-  const payer = publicKey
-    ? new web3.PublicKey(provider.wallet.publicKey)
-    : null;
+  const payer = publicKey ? new web3.PublicKey(publicKey) : null;
 
   const payer2 =
     dscvrResponse && new web3.PublicKey(dscvrResponse?.untrusted?.address);
 
-  // console.log("payer4", payer);
+  console.log(payer?.toString(), payer2);
+
   return (
     <>
       <div className="h-full">
@@ -135,7 +128,7 @@ export default function MainApp() {
         <p>{dscvrResponse?.untrusted?.address}</p>
         <p>{isReady ? "true" : "false"}</p>
         <p>{program ? "prgram true" : "program false"}</p>
-        <CreateCampaign program={program} payer={payer} payer2={payer2} />
+        <CreateCampaign program={program} payer={publicKey} payer2={payer2} />
         <Suspense fallback={<div> loading</div>}>
           <Campaign program={program} payer={payer} />
         </Suspense>

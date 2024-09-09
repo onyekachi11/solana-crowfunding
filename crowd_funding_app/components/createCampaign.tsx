@@ -26,35 +26,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
   const { client, user, content, isReady } = useCanvasClient();
 
-  // // Helper function to create unsigned transaction for WalletConnect
-  // const createUnsignedTransaction = async (
-  //   campaignPublicKey: web3.PublicKey,
-  //   payer: web3.PublicKey,
-  //   amount: anchor.BN
-  // ) => {
-  //   // Implementation depends on your specific needs
-  //   // This is a placeholder
-  //   const connection = new web3.Connection(web3.clusterApiUrl("devnet"));
-  //   const recentBlockhash = await connection.getRecentBlockhash();
-
-  //   const ix = await program?.methods
-  //     .createCampaign(title, description, new anchor.BN(amount))
-  //     .accounts({
-  //       campaign: campaignPublicKey,
-  //       payer: payer,
-  //       systemProgram: web3.SystemProgram.programId,
-  //     })
-  //     .instruction();
-
-  //   const tx = new web3.Transaction();
-
-  //   tx.recentBlockhash = recentBlockhash.blockhash;
-  //   tx.feePayer = payer && payer;
-
-  //   tx.add(ix as web3.TransactionInstruction);
-  //   return tx.serialize({ verifySignatures: false }).toString("base64");
-  // };
-
   const createUnsignedTransaction = async (
     campaignPublicKey: web3.PublicKey,
     payer: web3.PublicKey,
@@ -66,7 +37,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         .accounts({
           campaign: campaignPublicKey,
           payer: payer,
-          // systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
+          systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([])
         .rpc();
@@ -94,6 +65,17 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
     // toastloading;
 
+    console.log(
+      "Campaign Keypair PublicKey:",
+      campaignKeypair?.publicKey?.toString()
+    );
+
+    if (!campaignKeypair?.publicKey) {
+      console.error("Campaign publicKey is undefined");
+      toast.error("Campaign publicKey is undefined");
+      return;
+    }
+
     if (isReady) {
       if (!payer2) {
         toast.error("no payer");
@@ -101,8 +83,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       }
 
       toastloading;
-
-      // const tnx = await createtx();
 
       const unsignedTx = await createUnsignedTransaction(
         campaignKeypair.publicKey,
@@ -129,11 +109,20 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         }
         toastloading;
 
+        console.log("payer: ", payer);
+        console.log(
+          "Campaign Keypair PublicKey: ",
+          campaignKeypair?.publicKey?.toString()
+        );
+        console.log("Program:", program);
+
         const tx = await program?.methods
           ?.createCampaign(title, description, amount)
           .accounts({
             campaign: new web3.PublicKey(campaignKeypair.publicKey),
             payer: payer,
+            // payer: payer.toString(),
+            systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
           })
           .signers([campaignKeypair])
           .rpc();
