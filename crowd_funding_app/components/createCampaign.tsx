@@ -39,15 +39,15 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         return;
       }
 
-      const response2: any = await client?.connectWallet("solana:103");
+      // const response2: any = await client?.connectWallet("solana:103");
 
-      const payer2PublicKey = new web3.PublicKey(response2?.untrusted?.address);
+      // const payer2PublicKey = new web3.PublicKey(response2?.untrusted?.address);
 
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
           campaign: campaignKeypair.publicKey,
-          payer: payer2PublicKey,
+          payer: payer2,
           systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([campaignKeypair])
