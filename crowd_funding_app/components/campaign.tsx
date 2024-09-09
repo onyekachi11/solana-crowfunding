@@ -98,8 +98,8 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
 
   useEffect(() => {
     // setTimeout(() => {
-    if (campaignId == null) {
-      console.error("No campaign id provided");
+    if (!campaignId) {
+      // console.error("No campaign id provided");
       return;
     } else {
       getCampaign();

@@ -115,6 +115,7 @@ export default function MainApp() {
   }, [connection]);
 
   const payer = publicKey ? new web3.PublicKey(publicKey) : null;
+  //   const payer3 =program ? program?.provider.publicKey : null
 
   const payer2 =
     dscvrResponse && new web3.PublicKey(dscvrResponse?.untrusted?.address);
@@ -128,7 +129,7 @@ export default function MainApp() {
         <p>{dscvrResponse?.untrusted?.address}</p>
         <p>{isReady ? "true" : "false"}</p>
         <p>{program ? "prgram true" : "program false"}</p>
-        <CreateCampaign program={program} payer={publicKey} payer2={payer2} />
+        <CreateCampaign program={program} payer={payer} payer2={payer2} />
         <Suspense fallback={<div> loading</div>}>
           <Campaign program={program} payer={payer} />
         </Suspense>

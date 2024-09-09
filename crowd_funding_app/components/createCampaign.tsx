@@ -20,9 +20,9 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
   const [openLinkModal, setOpenLinkModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [id, setId] = useState<string | null>("");
-  const [title, setTitle] = useState<string | null>();
-  const [description, setDescription] = useState<string | null>();
-  const [fundingGoal, setFundingGoal] = useState<number | null>();
+  const [title, setTitle] = useState<string | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+  const [fundingGoal, setFundingGoal] = useState<number | null>(null);
 
   const { client, user, content, isReady } = useCanvasClient();
 
@@ -124,14 +124,14 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
             payer: new web3.PublicKey(payer),
           })
           .signers([campaignKeypair])
-          .rpc({ commitment: "confirmed" });
+          .rpc();
 
-        // Wait for confirmation
-        const confirmation = tx && (await waitForConfirmation(tx));
-        if (!confirmation) {
-          toast.error("Transaction confirmation failed", { id: toastloading });
-          return null;
-        }
+        // // Wait for confirmation
+        // const confirmation = tx && (await waitForConfirmation(tx));
+        // if (!confirmation) {
+        //   toast.error("Transaction confirmation failed", { id: toastloading });
+        //   return null;
+        // }
         setId(campaignKeypair.publicKey.toString());
         setOpenModal(false);
         setOpenLinkModal(true);
