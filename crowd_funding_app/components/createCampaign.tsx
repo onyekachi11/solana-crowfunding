@@ -28,7 +28,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
   const createUnsignedTransaction = async (
     campaignPublicKey: web3.PublicKey,
-    payer: web3.PublicKey,
+    signer: web3.PublicKey,
     amount: anchor.BN
   ) => {
     try {
@@ -36,8 +36,8 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         .createCampaign(title, description, amount)
         .accounts({
           campaign: campaignPublicKey,
-          payer: payer,
-          systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
+          payer: signer,
+          // systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([])
         .rpc();
@@ -86,7 +86,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
       const unsignedTx = await createUnsignedTransaction(
         campaignKeypair.publicKey,
-        payer2,
+        new web3.PublicKey(payer2),
         amount
       );
 
@@ -120,9 +120,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
           ?.createCampaign(title, description, amount)
           .accounts({
             campaign: new web3.PublicKey(campaignKeypair.publicKey),
-            payer: payer,
-            // payer: payer.toString(),
-            systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
+            payer: new web3.PublicKey(payer),
           })
           .signers([campaignKeypair])
           .rpc();
