@@ -6,8 +6,10 @@ import Modal from "./Modal";
 import Button from "./Button";
 import toast from "react-hot-toast";
 import Icon from "./Icon";
+import * as bs58 from "bs58";
 import { IoCloseCircle } from "react-icons/io5";
 import { useCanvasClient } from "@/hooks/useCanvasClient";
+import { CanvasInterface } from "@dscvr-one/canvas-client-sdk";
 
 interface Campaign {
   program: anchor.Program<anchor.Idl> | undefined;
@@ -28,13 +30,9 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
   const createUnsignedTransaction = async (
     campaignKeypair: web3.Keypair,
-    // signer: web3.PublicKey,
+    signer: web3.PublicKey,
     amount: anchor.BN
   ) => {
-    console.log(payer2);
-    console.log(payer2 && payer2.toString());
-    console.log(payer2 && new web3.PublicKey(payer2.toString()));
-
     try {
       if (!payer2) {
         console.error("no payer");
@@ -50,7 +48,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         .accounts({
           campaign: campaignKeypair.publicKey,
           payer: payer2PublicKey,
-          // systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
+          systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([campaignKeypair])
         .rpc();
@@ -59,7 +57,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       if (!ix) {
         throw new Error("Failed to create transaction instruction.");
       }
-      return response2;
+      return ix;
     } catch (error: any) {
       console.error("Error creating unsigned transaction:", error);
       throw new Error(`Transaction creation failed: ${error}`);
@@ -100,20 +98,14 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
         const unsignedTx = await createUnsignedTransaction(
           campaignKeypair,
-          // new web3.PublicKey(payer2),
+          new web3.PublicKey(payer2),
           amount
         );
 
-        // const response = await client?.signAndSendTransaction({
-        //   unsignedTx: unsignedTx,
-        //   awaitCommitment: "confirmed",
-        //   chainId: "solana:103",
-        // });
-
-        const response = await client?.connectWalletAndSendTransaction(
-          "solana:103",
-          unsignedTx
-        );
+        const response = await client?.signAndSendTransaction({
+          unsignedTx: unsignedTx as string,
+          chainId: "solana:103",
+        });
 
         console.log(response?.untrusted?.success);
         if (response?.untrusted?.success === true) {
