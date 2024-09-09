@@ -34,7 +34,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     console.log(payer2);
     console.log(payer2 && payer2.toString());
     console.log(payer2 && new web3.PublicKey(payer2.toString()));
-    console.log(payer2 && new web3.PublicKey(payer2.toBuffer()));
 
     try {
       if (!payer2) {
@@ -42,13 +41,13 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         return;
       }
 
-      const payer2PublicKey = new web3.PublicKey(payer2.toBuffer());
+      const payer2PublicKey = new web3.PublicKey(payer2);
 
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
           campaign: campaignKeypair.publicKey,
-          payer: new anchor.web3.PublicKey(payer2.toString()),
+          payer: payer2PublicKey,
           // systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([campaignKeypair])
