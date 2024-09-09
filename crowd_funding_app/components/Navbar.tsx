@@ -28,7 +28,10 @@ const Navbar = ({ connect }: any) => {
         <BalanceDisplay />
 
         {isReady ? (
-          <Button name="Connect wallet" onClick={() => connect()} />
+          <>
+            <Button name="Connect wallet" onClick={() => connect()} />
+            <WalletMultiButton />
+          </>
         ) : (
           <WalletMultiButton />
         )}
