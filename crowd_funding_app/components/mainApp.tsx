@@ -6,6 +6,7 @@ import {
   useWallet,
   useConnection,
   useAnchorWallet,
+  AnchorWallet,
 } from "@solana/wallet-adapter-react";
 
 import { Suspense, useEffect, useState } from "react";
@@ -89,10 +90,15 @@ export default function MainApp() {
   // Load program
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana) {
-      // Ensure that window.solana exists before creating the provider
+      //   Ensure that window.solana exists before creating the provider
       const provider = new anchor.AnchorProvider(connections, window.solana, {
         preflightCommitment: "finalized",
       });
+      // const provider = new anchor.AnchorProvider(
+      //   connection,
+      //   {} as anchor.Wallet, // Empty wallet for read-only operations
+      //   { preflightCommitment: "confirmed" }
+      // );
 
       // Fetch the program or do other actions that require the provider here
       const fetchProgram = async () => {

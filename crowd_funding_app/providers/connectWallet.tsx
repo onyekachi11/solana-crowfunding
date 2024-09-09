@@ -32,7 +32,7 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ children }) => {
 
   const wallets = useMemo(
     () => [
-      new PhantomWalletAdapter(),
+      // new PhantomWalletAdapter(),
       // Add other wallet adapters here
       // new SolflareWalletAdapter(),
     ],

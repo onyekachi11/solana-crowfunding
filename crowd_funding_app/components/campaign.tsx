@@ -82,20 +82,6 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
     }
   };
 
-  // useEffect(() => {
-  //   const getvalue = async () => {
-  //     const pubkey = campaignId && new web3.PublicKey(campaignId);
-  //     if (pubkey) {
-  //       const value = connection?.getParsedAccountInfo(pubkey, {
-  //         commitment: "confirmed",
-  //         // maxSupportedTransactionVersion: 0,
-  //       });
-  //       console.log(value);
-  //     }
-  //   };
-  //   getvalue();
-  // }, [campaignId]);
-
   useEffect(() => {
     // setTimeout(() => {
     if (!campaignId) {
@@ -127,7 +113,6 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
           campaign: campaignId,
           systemProgram: web3.SystemProgram.programId,
         })
-        .signers([])
         .rpc();
 
       await getCampaign();

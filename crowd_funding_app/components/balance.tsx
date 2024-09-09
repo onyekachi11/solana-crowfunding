@@ -12,13 +12,13 @@ export const BalanceDisplay: React.FC = () => {
       return;
     }
 
-    connection.onAccountChange(
-      publicKey,
-      (updatedAccountInfo) => {
-        setBalance(updatedAccountInfo.lamports / LAMPORTS_PER_SOL);
-      },
-      "confirmed"
-    );
+    // connection.onAccountChange(
+    //   publicKey,
+    //   (updatedAccountInfo) => {
+    //     setBalance(updatedAccountInfo.lamports / LAMPORTS_PER_SOL);
+    //   },
+    //   "confirmed"
+    // );
 
     connection.getAccountInfo(publicKey).then((info) => {
       if (info) {
