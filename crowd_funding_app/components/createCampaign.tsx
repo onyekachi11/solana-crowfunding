@@ -32,7 +32,8 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     amount: anchor.BN
   ) => {
     console.log(payer2);
-    console.log(payer2 && new anchor.web3.PublicKey(payer2.toString()));
+    console.log(payer2 && payer2.toString());
+    console.log(payer2 && new web3.PublicKey(payer2.toString()));
     try {
       if (!payer2) {
         console.error("no payer");
