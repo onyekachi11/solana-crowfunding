@@ -90,8 +90,8 @@ export default function MainApp() {
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana) {
       // Ensure that window.solana exists before creating the provider
-      const provider = new anchor.AnchorProvider(connection, window.solana, {
-        preflightCommitment: "confirmed",
+      const provider = new anchor.AnchorProvider(connections, window.solana, {
+        preflightCommitment: "finalized",
       });
 
       // Fetch the program or do other actions that require the provider here

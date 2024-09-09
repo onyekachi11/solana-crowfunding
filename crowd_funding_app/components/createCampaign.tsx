@@ -27,19 +27,20 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
   const { client, user, content, isReady } = useCanvasClient();
 
   const createUnsignedTransaction = async (
-    campaignPublicKey: web3.PublicKey,
+    campaignKeypair: web3.Keypair,
     signer: web3.PublicKey,
     amount: anchor.BN
   ) => {
+    console.log(signer);
     try {
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
-          campaign: campaignPublicKey,
+          campaign: campaignKeypair.publicKey,
           payer: signer,
           // systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
-        .signers([])
+        .signers([campaignKeypair])
         .rpc();
 
       // Check if instruction is valid
@@ -51,6 +52,13 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       console.error("Error creating unsigned transaction:", error);
       throw new Error(`Transaction creation failed: ${error}`);
     }
+  };
+
+  const confirmOptions: web3.ConfirmOptions = {
+    commitment: "confirmed",
+    maxRetries: 5, // Retry the confirmation multiple times
+    preflightCommitment: "processed", // Preflight the transaction before confirmation
+    // timeout: 60000, // Increase timeout to 60 seconds
   };
 
   const createACampaign = async (
@@ -85,7 +93,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       toastloading;
 
       const unsignedTx = await createUnsignedTransaction(
-        campaignKeypair.publicKey,
+        campaignKeypair,
         new web3.PublicKey(payer2),
         amount
       );
@@ -109,13 +117,6 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         }
         toastloading;
 
-        console.log("payer: ", payer);
-        console.log(
-          "Campaign Keypair PublicKey: ",
-          campaignKeypair?.publicKey?.toString()
-        );
-        console.log("Program:", program);
-
         const tx = await program?.methods
           ?.createCampaign(title, description, amount)
           .accounts({
@@ -123,7 +124,14 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
             payer: new web3.PublicKey(payer),
           })
           .signers([campaignKeypair])
-          .rpc();
+          .rpc({ commitment: "confirmed" });
+
+        // Wait for confirmation
+        const confirmation = tx && (await waitForConfirmation(tx));
+        if (!confirmation) {
+          toast.error("Transaction confirmation failed", { id: toastloading });
+          return null;
+        }
         setId(campaignKeypair.publicKey.toString());
         setOpenModal(false);
         setOpenLinkModal(true);
@@ -139,6 +147,27 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         });
       }
     }
+  };
+
+  const waitForConfirmation = async (signature: string, timeout = 60000) => {
+    const connection = new web3.Connection(
+      web3.clusterApiUrl("devnet"),
+      "confirmed"
+    );
+    const start = Date.now();
+    let status = await connection.getSignatureStatus(signature);
+
+    while (Date.now() - start < timeout) {
+      if (
+        status?.value?.confirmationStatus === "confirmed" ||
+        status?.value?.confirmationStatus === "finalized"
+      ) {
+        return true;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for 2 seconds before checking again
+      status = await connection.getSignatureStatus(signature);
+    }
+    return false;
   };
 
   // const shareLink = `http://localhost:3000/?campaignId=${id}`;
