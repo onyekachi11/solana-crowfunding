@@ -41,7 +41,9 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         return;
       }
 
-      const payer2PublicKey = new web3.PublicKey(payer2);
+      const response2: any = await client?.connectWallet("solana:103");
+
+      const payer2PublicKey = new web3.PublicKey(response2?.untrusted?.address);
 
       const ix = await program?.methods
         .createCampaign(title, description, amount)
@@ -57,7 +59,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       if (!ix) {
         throw new Error("Failed to create transaction instruction.");
       }
-      return ix;
+      return response2;
     } catch (error: any) {
       console.error("Error creating unsigned transaction:", error);
       throw new Error(`Transaction creation failed: ${error}`);
@@ -96,17 +98,23 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
       try {
         toastloading;
 
-        const unsignedTx = (await createUnsignedTransaction(
+        const unsignedTx = await createUnsignedTransaction(
           campaignKeypair,
           // new web3.PublicKey(payer2),
           amount
-        )) as string;
+        );
 
-        const response = await client?.signAndSendTransaction({
-          unsignedTx: unsignedTx,
-          awaitCommitment: "confirmed",
-          chainId: "solana:103",
-        });
+        // const response = await client?.signAndSendTransaction({
+        //   unsignedTx: unsignedTx,
+        //   awaitCommitment: "confirmed",
+        //   chainId: "solana:103",
+        // });
+
+        const response = await client?.connectWalletAndSendTransaction(
+          "solana:103",
+          unsignedTx
+        );
+
         console.log(response?.untrusted?.success);
         if (response?.untrusted?.success === true) {
           setId(campaignKeypair.publicKey.toString());
