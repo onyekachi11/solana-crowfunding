@@ -108,7 +108,8 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
           awaitCommitment: "confirmed",
           chainId: "solana:103",
         });
-        if (response?.untrusted.success === true) {
+        console.log(response?.untrusted?.success);
+        if (response?.untrusted?.success === true) {
           setId(campaignKeypair.publicKey.toString());
           setOpenModal(false);
           setOpenLinkModal(true);
@@ -118,6 +119,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         }
       } catch (e) {
         if (e) {
+          console.error(e);
           toast.error(`FAILED`, {
             id: toastloading,
           });
