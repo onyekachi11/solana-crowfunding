@@ -258,6 +258,8 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         return;
       }
 
+      console.log("before", payer2);
+
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
@@ -267,6 +269,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         })
         .signers([campaignKeypair])
         .rpc();
+      console.log("after", payer2);
 
       // Check if instruction is valid
       if (!ix) {
