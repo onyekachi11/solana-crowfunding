@@ -257,26 +257,46 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         console.error("no payer");
         return;
       }
-
       console.log("before", payer2);
 
+      // Create the transaction instruction
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
           campaign: campaignKeypair.publicKey,
           payer: new web3.PublicKey(payer2),
-          systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
+          systemProgram: web3.SystemProgram.programId,
         })
-        .signers([campaignKeypair])
-        .rpc();
-      console.log("after", payer2);
+        .instruction();
 
-      // Check if instruction is valid
       if (!ix) {
         throw new Error("Failed to create transaction instruction.");
       }
-      return ix;
+
+      // Get the latest blockhash
+      const latestBlockhash =
+        await program?.provider.connection.getLatestBlockhash();
+
+      // Create a new transaction and add the instruction
+      const tx = new web3.Transaction().add(ix);
+
+      // Set the fee payer
+      tx.feePayer = new web3.PublicKey(payer2);
+
+      // Set the recent blockhash
+      tx.recentBlockhash = latestBlockhash?.blockhash;
+
+      // Partially sign the transaction with campaignKeypair
+      tx.partialSign(campaignKeypair);
+
+      // Serialize the transaction to return
+      const serializedTx = tx.serialize({ requireAllSignatures: false });
+      const unsignedTx = bs58.default.encode(serializedTx);
+
+      console.log("after", payer2);
+      return unsignedTx;
     } catch (error: any) {
+      console.log("after error", payer2);
       console.error("Error creating unsigned transaction:", error);
       throw new Error(`Transaction creation failed: ${error}`);
     }
@@ -290,7 +310,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
     // Create a new keypair for the campaign account
     const campaignKeypair = anchor.web3.Keypair.generate();
     const amount = new anchor.BN(fundingGoal * web3.LAMPORTS_PER_SOL);
-    const toastloading = toast.loading("Loading...");
+    // const toastloading = toast.loading("Loading...");
 
     // toastloading;
 
@@ -310,27 +330,33 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         toast.error("no payer");
         return null;
       }
+      const toastloading = toast.loading("Loading...");
 
       try {
         toastloading;
 
-        const unsignedTx = await createUnsignedTransaction(
+        const unsignedTx = (await createUnsignedTransaction(
           campaignKeypair,
           new web3.PublicKey(payer2),
           amount
-        );
+        )) as string;
+        console.log(unsignedTx);
 
         const response = await client?.signAndSendTransaction({
           unsignedTx: unsignedTx as string,
           chainId: "solana:103",
         });
 
-        console.log(response?.untrusted?.success);
+        console.log(response);
         if (response?.untrusted?.success === true) {
           setId(campaignKeypair.publicKey.toString());
           setOpenModal(false);
           setOpenLinkModal(true);
           toast.success(`Campaign created successfully!`, {
+            id: toastloading,
+          });
+        } else {
+          toast.error(`Error creating campaign`, {
             id: toastloading,
           });
         }
@@ -344,11 +370,13 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         }
       }
     } else {
+      const toastloading = toast.loading("Loading...");
       try {
         if (!payer) {
           toast.error("no payer");
           return null;
         }
+
         toastloading;
 
         const tx = await program?.methods
@@ -553,3 +581,22 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 };
 
 export default CreateCampaign;
+
+// const val = async (
+//   response: CanvasInterface.User.ConnectWalletResponse
+// ) => {
+//   // We don't need to call connectWallet again here, as it's already done by connectWalletAndSendTransaction
+//   console.log("inside val", response);
+//   return new Promise<CanvasInterface.User.UnsignedTransaction>(
+//     (resolve) => {
+//       resolve({ unsignedTx, awaitCommitment: "confirmed" });
+//     }
+//   );
+// };
+
+// const response = client?.connectWalletAndSendTransaction(
+//   "solana:103",
+//   val
+// );
+
+// console.log("outside val", response);
