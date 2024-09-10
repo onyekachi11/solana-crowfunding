@@ -258,15 +258,18 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         return;
       }
 
+      console.log("before", payer2);
+
       const ix = await program?.methods
         .createCampaign(title, description, amount)
         .accounts({
           campaign: campaignKeypair.publicKey,
-          payer: new web3.PublicKey(payer2.toJSON()),
+          payer: new web3.PublicKey(payer2),
           systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([campaignKeypair])
         .rpc();
+      console.log("after", payer2);
 
       // Check if instruction is valid
       if (!ix) {
