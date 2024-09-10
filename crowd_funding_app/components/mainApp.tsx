@@ -199,11 +199,11 @@ export default function MainApp() {
   }, [connection]);
 
   const payer = publicKey ? new web3.PublicKey(publicKey) : null;
-  //   const payer3 = program ? program?.provider.publicKey : null;
+  const payer3 = program ? program?.provider.publicKey : null;
 
   const payer2 = dscvrResponse?.untrusted.address;
 
-  //   console.log(payer, payer2, payer3);
+  console.log(payer, payer2, payer3);
 
   return (
     <>
