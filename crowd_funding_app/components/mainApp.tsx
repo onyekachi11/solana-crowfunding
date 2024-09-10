@@ -203,7 +203,7 @@ export default function MainApp() {
 
   const payer2 = dscvrResponse?.untrusted.address;
 
-  console.log(payer, payer2, payer3);
+  console.log(payer, payer2?.toJSON(), payer3);
 
   return (
     <>
