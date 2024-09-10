@@ -58,9 +58,9 @@ const Navbar = ({ connect }: any) => {
       <div className="flex items-center gap-2 flex-col">
         <BalanceDisplay />
 
-        {!isReady ? (
+        {isReady ? (
           <>
-            {/* <Button name="Connect wallet" onClick={() => connect()} /> */}
+            <Button name="Connect wallet" onClick={() => connect()} />
             <WalletMultiButton />
           </>
         ) : (
