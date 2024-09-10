@@ -204,10 +204,10 @@ export default function MainApp() {
   const payer3 = program ? program?.provider.publicKey : null;
 
   const payer2 = dscvrResponse?.untrusted.address;
+  const payer4 = payer2 ? new web3.PublicKey(payer2) : null;
+  const payer5 = payer4 ? new web3.PublicKey(payer4?.toJSON()) : null;
 
-  console.log(payer, payer2, payer3);
-
-  console.log(payer2 ? new web3.PublicKey(payer2?.toJSON()) : null);
+  console.log(payer, payer2, payer3, payer4, payer5);
 
   return (
     <>
