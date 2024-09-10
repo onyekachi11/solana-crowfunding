@@ -132,6 +132,8 @@ export default function MainApp() {
     if (isReady) {
       const response = await client?.connectWallet("solana:103");
 
+      client?.destroy();
+
       if (response?.untrusted.success == false) {
         toast.error("Could not connect");
         console.error("Failed to connect wallet", response.untrusted?.error);
@@ -203,7 +205,9 @@ export default function MainApp() {
 
   const payer2 = dscvrResponse?.untrusted.address;
 
-  console.log(payer, payer2?.toJSON(), payer3);
+  console.log(payer, payer2, payer3);
+
+  console.log(payer2 ? new web3.PublicKey(payer2?.toJSON()) : null);
 
   return (
     <>
