@@ -132,8 +132,6 @@ export default function MainApp() {
     if (isReady) {
       const response = await client?.connectWallet("solana:103");
 
-      client?.destroy();
-
       if (response?.untrusted.success == false) {
         toast.error("Could not connect");
         console.error("Failed to connect wallet", response.untrusted?.error);
@@ -216,6 +214,7 @@ export default function MainApp() {
         <p>{dscvrResponse?.untrusted?.address}</p>
         <p>{isReady ? "true" : "false"}</p>
         <p>{program ? "prgram true" : "program false"}</p>
+        <p>new2</p>
         <CreateCampaign
           program={program}
           payer={payer}
