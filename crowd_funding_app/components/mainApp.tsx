@@ -1,3 +1,87 @@
+// "use client";
+// import * as web3 from "@solana/web3.js";
+// import * as anchor from "@coral-xyz/anchor";
+// import "dotenv/config";
+// import {
+//   useWallet,
+//   useConnection,
+//   useAnchorWallet,
+//   AnchorWallet,
+// } from "@solana/wallet-adapter-react";
+
+// import { Suspense, useEffect, useState } from "react";
+// import Campaign from "@/components/campaign";
+// import Navbar from "@/components/Navbar";
+// import CreateCampaign from "@/components/createCampaign";
+// import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+// import { useResizeObserver } from "@/hooks/useResizeObserver";
+// import { useCanvasClient } from "@/hooks/useCanvasClient";
+// import { CanvasInterface, CanvasClient } from "@dscvr-one/canvas-client-sdk";
+
+// import { SOLANA_CHAINS, SOLANA_DEVNET_CHAIN } from "@solana/wallet-standard";
+// import { toast } from "react-toastify";
+
+// export default function MainApp() {
+//   const [program, setProgram] = useState<anchor.Program<anchor.Idl>>();
+
+//   const connections = new web3.Connection(
+//     web3.clusterApiUrl("devnet"),
+//     "finalized"
+//   );
+
+//   const programId = new web3.PublicKey(
+//     "Eis8iYtZBk7HmgBEvgj1soAtCZjqV8mDcRbcqo1U4TPc"
+//   );
+
+//   const provider = new anchor.AnchorProvider(
+//     connections,
+//     window && window.solana,
+//     {
+//       preflightCommitment: "finalized",
+//     }
+//   );
+//   console.log(provider);
+
+//   // Load program
+//   useEffect(() => {
+//     const fetchProgram = async () => {
+//       try {
+//         const idl = await anchor.Program.fetchIdl(programId, provider);
+//         if (idl) {
+//           const crowdFunderProgram = new anchor.Program(idl, provider);
+//           setProgram(crowdFunderProgram);
+//         }
+//       } catch (error) {
+//         console.error("Error fetching IDL:", error);
+//       }
+//     };
+
+//     fetchProgram();
+//     // eslint-disable-next-line react-hooks/exhaustive-deps
+//   }, []);
+
+//   const payer = provider.publicKey as web3.PublicKey;
+//   const payer2 = payer ? new web3.PublicKey(payer?.toJSON()) : null;
+//   //   console.log("payer", payer);
+//   console.log("payer2", payer2);
+//   return (
+//     <>
+//       <div className="h-full">
+//         <Navbar />
+//         <p>{program ? "prgram true" : "program false"}</p>
+//         <CreateCampaign
+//           program={program}
+//           payer={payer2}
+//           conection={connections}
+//         />
+//         <Suspense fallback={<div> loading</div>}>
+//           <Campaign program={program} payer={payer2} />
+//         </Suspense>
+//       </div>
+//     </>
+//   );
+// }
+
 "use client";
 import * as web3 from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
@@ -6,7 +90,6 @@ import {
   useWallet,
   useConnection,
   useAnchorWallet,
-  AnchorWallet,
 } from "@solana/wallet-adapter-react";
 
 import { Suspense, useEffect, useState } from "react";
@@ -90,15 +173,10 @@ export default function MainApp() {
   // Load program
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana) {
-      //   Ensure that window.solana exists before creating the provider
+      // Ensure that window.solana exists before creating the provider
       const provider = new anchor.AnchorProvider(connections, window.solana, {
         preflightCommitment: "finalized",
       });
-      // const provider = new anchor.AnchorProvider(
-      //   connection,
-      //   {} as anchor.Wallet, // Empty wallet for read-only operations
-      //   { preflightCommitment: "confirmed" }
-      // );
 
       // Fetch the program or do other actions that require the provider here
       const fetchProgram = async () => {
@@ -121,11 +199,11 @@ export default function MainApp() {
   }, [connection]);
 
   const payer = publicKey ? new web3.PublicKey(publicKey) : null;
-  //   const payer3 =program ? program?.provider.publicKey : null
+  //   const payer3 = program ? program?.provider.publicKey : null;
 
   const payer2 = dscvrResponse?.untrusted.address;
 
-  console.log(payer?.toString(), payer2);
+  //   console.log(payer, payer2, payer3);
 
   return (
     <>
@@ -134,7 +212,12 @@ export default function MainApp() {
         <p>{dscvrResponse?.untrusted?.address}</p>
         <p>{isReady ? "true" : "false"}</p>
         <p>{program ? "prgram true" : "program false"}</p>
-        <CreateCampaign program={program} payer={payer} payer2={payer2} />
+        <CreateCampaign
+          program={program}
+          payer={payer}
+          payer2={payer2}
+          //   conection={connections}
+        />
         <Suspense fallback={<div> loading</div>}>
           <Campaign program={program} payer={payer} />
         </Suspense>
