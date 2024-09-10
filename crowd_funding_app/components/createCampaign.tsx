@@ -264,7 +264,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         .createCampaign(title, description, amount)
         .accounts({
           campaign: campaignKeypair.publicKey,
-          payer: new web3.PublicKey(payer2.toJSON()),
+          payer: new web3.PublicKey(payer2),
           systemProgram: web3.SystemProgram.programId, // Ensure System Program is used
         })
         .signers([campaignKeypair])

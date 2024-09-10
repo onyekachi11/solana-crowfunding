@@ -219,7 +219,7 @@ export default function MainApp() {
         <CreateCampaign
           program={program}
           payer={payer}
-          payer2={payer5}
+          payer2={payer4}
           //   conection={connections}
         />
         <Suspense fallback={<div> loading</div>}>
