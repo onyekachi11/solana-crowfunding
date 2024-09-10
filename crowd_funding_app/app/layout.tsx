@@ -10,12 +10,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Crowd Funder",
   description: "",
-  viewport: "width=device-width, initial-scale=1",
   other: {
     "dscvr:canvas:version": "vNext",
     "og:image": "https://my-canvas.com/preview-image.png",
-    "Content-Security-Policy":
-      "default-src 'self'; connect-src 'self' https://api.dscvr.one https://api1.stg.dscvr.one https://*.helius-rpc.com https://api.devnet.solana.com;",
   },
 };
 

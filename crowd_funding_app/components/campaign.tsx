@@ -82,20 +82,6 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
     }
   };
 
-  // useEffect(() => {
-  //   const getvalue = async () => {
-  //     const pubkey = campaignId && new web3.PublicKey(campaignId);
-  //     if (pubkey) {
-  //       const value = connection?.getParsedAccountInfo(pubkey, {
-  //         commitment: "confirmed",
-  //         // maxSupportedTransactionVersion: 0,
-  //       });
-  //       console.log(value);
-  //     }
-  //   };
-  //   getvalue();
-  // }, [campaignId]);
-
   useEffect(() => {
     // setTimeout(() => {
     if (!campaignId) {
@@ -108,6 +94,43 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [program, campaignId]);
 
+  // const fundCampaign = async (amount: number) => {
+  //   if (!payer) {
+  //     toast.error(`No wallet connected`);
+  //     return;
+  //   }
+  //   console.log(payer);
+
+  //   const toastLoading = toast.loading("Loading...");
+
+  //   toastLoading;
+
+  //   try {
+  //     const tx = await program?.methods
+  //       ?.fundCampaign(new anchor.BN(amount))
+  //       .accounts({
+  //         payer: new web3.PublicKey(payer),
+  //         campaign: campaignId,
+  //         systemProgram: web3.SystemProgram.programId,
+  //       })
+  //       // .signers([payer])
+  //       .rpc();
+
+  //     await getCampaign();
+  //     toast.success("Campaign funded successfully!", {
+  //       id: toastLoading,
+  //     });
+  //     setOpenModal(false);
+  //     return tx;
+  //   } catch (error) {
+  //     setOpenModal(false);
+  //     toast.error("Error funding campaign!", {
+  //       id: toastLoading,
+  //     });
+  //     console.error("Error funding campaign:", error);
+  //   }
+  // };
+
   const fundCampaign = async (amount: number) => {
     if (!payer) {
       toast.error(`No wallet connected`);
@@ -117,9 +140,10 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
 
     const toastLoading = toast.loading("Loading...");
 
-    toastLoading;
-
     try {
+      const { blockhash } =
+        await program?.provider?.connection.getLatestBlockhash("confirmed");
+
       const tx = await program?.methods
         ?.fundCampaign(new anchor.BN(amount))
         .accounts({
@@ -127,8 +151,8 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
           campaign: campaignId,
           systemProgram: web3.SystemProgram.programId,
         })
-        .signers([])
-        .rpc();
+        // .signers([payer])
+        .rpc({ preflightCommitment: "processed", blockhash });
 
       await getCampaign();
       toast.success("Campaign funded successfully!", {
@@ -149,6 +173,8 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
     const toastLoading = toast.loading("Loading...");
 
     try {
+      const { blockhash } =
+        await program?.provider?.connection.getLatestBlockhash("confirmed");
       // Call the withdrawFund method on the program
       const tx = await program?.methods
         .withdrawFund()
@@ -157,7 +183,7 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
           campaign: campaignId,
           systemProgram: anchor.web3.SystemProgram.programId,
         })
-        .rpc();
+        .rpc({ preflightCommitment: "processed", blockhash });
 
       await getCampaign();
       toast.success("Funds withdrawn successfully!", {
