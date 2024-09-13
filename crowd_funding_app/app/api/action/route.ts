@@ -52,45 +52,46 @@ export async function GET(request: Request) {
     const campaign: any = await program2?.account.campaign.fetch(
       new web3.PublicKey(campaignId)
     );
-
-    const response: ActionGetResponse = {
-      icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
-      description: campaign?.description,
-      type: "action",
-      label: "Fund Campaign",
-      title: campaign?.title,
-      disabled: campaign?.isActive === false,
-      links: {
-        actions: [
-          {
-            label: "Fund 0.1 SOL",
-            href: `/api/action?campaign_id=${campaignId}&fund_amount=0.1`,
-          },
-          {
-            label: "Fund 1 SOL",
-            href: `/api/action?campaign_id=${campaignId}&fund_amount=1`,
-          },
-          {
-            label: "Fund 5 SOL",
-            href: `/api/action?campaign_id=${campaignId}&fund_amount=5`,
-          },
-          {
-            label: "Enter amount to fund",
-            href: `/api/action?campaign_id=${campaignId}&fund_amount={amount}`,
-            parameters: [
-              {
-                name: "amount",
-                label: "Enter amount",
-                required: false,
-              },
-            ],
-          },
-        ],
-      },
-    };
-    return new Response(JSON.stringify(response), {
-      headers: ACTIONS_CORS_HEADERS,
-    });
+    if (campaign) {
+      const response: ActionGetResponse = {
+        icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
+        description: campaign?.description,
+        type: "action",
+        label: "Fund Campaign",
+        title: campaign?.title,
+        disabled: campaign?.isActive === false,
+        links: {
+          actions: [
+            {
+              label: "Fund 0.1 SOL",
+              href: `/api/action?campaign_id=${campaignId}&fund_amount=0.1`,
+            },
+            {
+              label: "Fund 1 SOL",
+              href: `/api/action?campaign_id=${campaignId}&fund_amount=1`,
+            },
+            {
+              label: "Fund 5 SOL",
+              href: `/api/action?campaign_id=${campaignId}&fund_amount=5`,
+            },
+            {
+              label: "Enter amount to fund",
+              href: `/api/action?campaign_id=${campaignId}&fund_amount={amount}`,
+              parameters: [
+                {
+                  name: "amount",
+                  label: "Enter amount",
+                  required: false,
+                },
+              ],
+            },
+          ],
+        },
+      };
+      return new Response(JSON.stringify(response), {
+        headers: ACTIONS_CORS_HEADERS,
+      });
+    }
   } catch (error) {
     console.error("Error fetching campaign:", error);
     return new Response(JSON.stringify({ error: "Failed to fetch campaign" }), {

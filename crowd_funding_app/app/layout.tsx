@@ -4,6 +4,9 @@ import "./globals.css";
 import ConnectWallet from "@/providers/connectWallet";
 import { ToastContainer } from "react-toastify";
 import { Toaster } from "react-hot-toast";
+import { CanvasProvider } from "@/providers/CanvasClient";
+import { Suspense } from "react";
+import MainApp from "@/components/mainApp";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,9 +28,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} `}>
         <ConnectWallet>
+          {/* <CanvasProvider> */}
+          <Suspense fallback={<p>Loading...</p>}>
+            <MainApp />
+          </Suspense>
           {children}
           <ToastContainer />
           <Toaster position="bottom-right" />
+          {/* </CanvasProvider> */}
         </ConnectWallet>
       </body>
     </html>

@@ -8,9 +8,9 @@ const Page = () => {
 
   return (
     <>
-      <Suspense fallback={<p>Loading...</p>}>
+      {/* <Suspense fallback={<p>Loading...</p>}>
         <MainApp />
-      </Suspense>
+      </Suspense> */}
       <Script
         src="https://www.googletagmanager.com/gtag/js"
         strategy="afterInteractive"
