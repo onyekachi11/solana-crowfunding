@@ -16,24 +16,37 @@ const connection = new web3.Connection(
   "confirmed"
 );
 
-const provider = new anchor.AnchorProvider(
-  connection,
-  {} as anchor.Wallet, // Empty wallet for read-only operations
-  { preflightCommitment: "confirmed" }
-);
+// const provider = new anchor.AnchorProvider(
+//   connection,
+//   {} as anchor.Wallet, // Empty wallet for read-only operations
+//   { preflightCommitment: "confirmed" }
+// );
+// const provider = new anchor.AnchorProvider(connection, window.solana, {
+//   preflightCommitment: "finalized",
+// });
 
 let program: anchor.Program<anchor.Idl>;
 let program2: anchor.Program<anchor.Idl> | any;
 
 (async () => {
-  try {
-    const idl = await anchor.Program.fetchIdl<anchor.Idl>(programId, provider);
-    if (idl) {
-      program = new anchor.Program<anchor.Idl>(idl, provider);
-      program2 = new anchor.Program<anchor.Idl>(idl, provider);
+  if (typeof window !== "undefined" && window.solana) {
+    const provider = new anchor.AnchorProvider(connection, window.solana, {
+      preflightCommitment: "finalized",
+    });
+    try {
+      const idl = await anchor.Program.fetchIdl<anchor.Idl>(
+        programId,
+        provider
+      );
+      if (idl) {
+        program = new anchor.Program<anchor.Idl>(idl, provider);
+        program2 = new anchor.Program<anchor.Idl>(idl, provider);
+      }
+    } catch (error) {
+      console.error("Error fetching IDL:", error);
     }
-  } catch (error) {
-    console.error("Error fetching IDL:", error);
+  } else {
+    console.error("Solana wallet not found");
   }
 })();
 
