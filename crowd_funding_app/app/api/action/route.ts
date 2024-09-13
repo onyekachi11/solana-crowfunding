@@ -52,6 +52,9 @@ export async function GET(request: Request) {
     const campaign: any = await program2?.account.campaign.fetch(
       new web3.PublicKey(campaignId)
     );
+
+    console.log(campaign);
+
     // if (campaign) {
     const response: ActionGetResponse = {
       icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
