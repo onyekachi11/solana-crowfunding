@@ -4,15 +4,19 @@ import * as anchor from "@coral-xyz/anchor";
 import React, { Suspense, useEffect, useState } from "react";
 import Button from "./Button";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import Modal from "./Modal";
 import toast from "react-hot-toast";
 import { IoCloseCircle } from "react-icons/io5";
 import Icon from "./Icon";
+import { createUnsignedTransaction } from "@/app/uils";
+import { useCanvasContext } from "@/providers/CanvasClient";
+import { useCanvasClient } from "@/hooks/useCanvasClient";
 
 interface Campaign {
   program: anchor.Program<anchor.Idl> | any;
   payer: web3.PublicKey | null;
+  payer2: web3.PublicKey | null;
   connected?: boolean;
   connection?: web3.Connection;
 }
@@ -28,46 +32,67 @@ export type CampaignAccount = {
 
 // Define the account type
 
-const Campaign = ({ program, payer, connected, connection }: Campaign) => {
+const Campaign = ({
+  program,
+  payer,
+  payer2,
+  connected,
+  connection,
+}: Campaign) => {
   const [campaign, setCampaign] = useState<CampaignAccount | null>(null);
-  const [campaignId, setCampaignId] = useState("");
+  const [campaignId, setCampaignId] = useState<string>("");
   const [amount, setAmount] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
-  const searchParams = useSearchParams();
+  const { campaign_id } = useParams();
+  // const { client, user, content, isReady } = useCanvasContext();
+  const { client, isReady } = useCanvasClient();
 
-  useEffect(() => {
-    const id = searchParams.get("campaign_id");
-    if (id) {
-      setCampaignId(id);
-    }
-  }, [searchParams]);
+  // useEffect(() => {
+  //   // const id = searchParams.get("campaign_id");
+  //   if (campaign_id) {
+  //     setCampaignId(campaign_id as string);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   // const blinkLink = `http://localhost:3000/api/action?campaign_id=${campaignId}`;
-  const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaignId}`;
+  // const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaign_id}`;
+  const blinkLink = `https://dscvr-blinks.vercel.app?action=https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaign_id}`;
 
   const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(blinkLink);
+    const response = await client?.copyToClipboard(blinkLink);
+    if (response?.untrusted.success === true) {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
-      toast.success("Link copied");
-    } catch (err) {
-      console.error("Failed to copy text: ", err);
+      // toast.success("Link copied");
+    } else {
+      console.error("Failed to copy text: ");
+      toast.error("Failed to copy text: ");
     }
+    // try {
+    //   await navigator.clipboard.writeText(blinkLink);
+    //   setIsCopied(true);
+    //   setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
+    //   toast.success("Link copied");
+    // } catch (err) {
+    //   console.error("Failed to copy text: ", err);
+    // }
   };
 
   const getCampaign = async () => {
     if (!program) {
-      // console.error("Program not loaded");
+      console.error("Program not loaded, Pls refresh");
       return;
     }
     const toastLoading = toast.loading("Loading...");
 
-    toastLoading;
+    // toastLoading;
     try {
-      const campaignAccount = await program?.account.campaign.fetch(campaignId);
+      const campaignAccount = await program?.account.campaign.fetch(
+        campaign_id
+      );
 
       setCampaign(campaignAccount);
       toast.success("Campaign fetched successfully!", {
@@ -82,121 +107,187 @@ const Campaign = ({ program, payer, connected, connection }: Campaign) => {
     }
   };
 
+  console.log(campaign_id);
+
   useEffect(() => {
-    // setTimeout(() => {
-    if (!campaignId) {
-      // console.error("No campaign id provided");
+    console.log(campaign_id);
+    if (!campaign_id) {
+      console.error("No campaign id provided");
       return;
     } else {
       getCampaign();
     }
-    // }, 5000);
+    // getCampaign();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [program, campaignId]);
-
-  // const fundCampaign = async (amount: number) => {
-  //   if (!payer) {
-  //     toast.error(`No wallet connected`);
-  //     return;
-  //   }
-  //   console.log(payer);
-
-  //   const toastLoading = toast.loading("Loading...");
-
-  //   toastLoading;
-
-  //   try {
-  //     const tx = await program?.methods
-  //       ?.fundCampaign(new anchor.BN(amount))
-  //       .accounts({
-  //         payer: new web3.PublicKey(payer),
-  //         campaign: campaignId,
-  //         systemProgram: web3.SystemProgram.programId,
-  //       })
-  //       // .signers([payer])
-  //       .rpc();
-
-  //     await getCampaign();
-  //     toast.success("Campaign funded successfully!", {
-  //       id: toastLoading,
-  //     });
-  //     setOpenModal(false);
-  //     return tx;
-  //   } catch (error) {
-  //     setOpenModal(false);
-  //     toast.error("Error funding campaign!", {
-  //       id: toastLoading,
-  //     });
-  //     console.error("Error funding campaign:", error);
-  //   }
-  // };
+  }, [campaign_id, program]);
 
   const fundCampaign = async (amount: number) => {
-    if (!payer) {
-      toast.error(`No wallet connected`);
-      return;
-    }
-    console.log(payer);
-
     const toastLoading = toast.loading("Loading...");
+    if (!program) {
+      console.error("Program not loaded, Pls refresh");
+      // return;
+    }
+    if (isReady) {
+      if (!payer2) {
+        toast.error(`No wallet connected`);
+        return;
+      }
+      try {
+        const unsignedTx = (await createUnsignedTransaction(
+          "fund",
+          program,
+          payer2,
+          {
+            campaignId: campaign_id as string,
+            amount: new anchor.BN(amount),
+          }
+        )) as string;
 
-    try {
-      const { blockhash } =
-        await program?.provider?.connection.getLatestBlockhash("confirmed");
+        console.log(unsignedTx);
 
-      const tx = await program?.methods
-        ?.fundCampaign(new anchor.BN(amount))
-        .accounts({
-          payer: new web3.PublicKey(payer),
-          campaign: campaignId,
-          systemProgram: web3.SystemProgram.programId,
-        })
-        // .signers([payer])
-        .rpc({ preflightCommitment: "processed", blockhash });
+        const response = await client?.signAndSendTransaction({
+          unsignedTx: unsignedTx as string,
+          chainId: "solana:103",
+        });
 
-      await getCampaign();
-      toast.success("Campaign funded successfully!", {
-        id: toastLoading,
-      });
-      setOpenModal(false);
-      return tx;
-    } catch (error) {
-      setOpenModal(false);
-      toast.error("Error funding campaign!", {
-        id: toastLoading,
-      });
-      console.error("Error funding campaign:", error);
+        await getCampaign();
+        toast.success("Campaign funded successfully!", {
+          id: toastLoading,
+        });
+        setOpenModal(false);
+
+        if (response?.untrusted?.success === true) {
+          await getCampaign();
+          toast.success("Campaign funded successfully!", {
+            id: toastLoading,
+          });
+          setOpenModal(false);
+        } else {
+          toast.error(`Error creating campaign`, {
+            id: toastLoading,
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error(`FAILED`, {
+          id: toastLoading,
+        });
+        return null;
+      }
+    } else {
+      try {
+        if (!payer) {
+          toast.error("no payer");
+          return null;
+        }
+        const { blockhash } =
+          await program?.provider?.connection.getLatestBlockhash("confirmed");
+
+        const tx = await program?.methods
+          ?.fundCampaign(new anchor.BN(amount))
+          .accounts({
+            payer: new web3.PublicKey(payer),
+            campaign: campaignId,
+            systemProgram: web3.SystemProgram.programId,
+          })
+          // .signers([payer])
+          .rpc({ preflightCommitment: "processed", blockhash });
+
+        await getCampaign();
+        toast.success("Campaign funded successfully!", {
+          id: toastLoading,
+        });
+        setOpenModal(false);
+        return tx;
+      } catch (error) {
+        setOpenModal(false);
+        toast.error("Error funding campaign!", {
+          id: toastLoading,
+        });
+        console.error("Error funding campaign:", error);
+      }
     }
   };
 
   const withdraw = async () => {
     const toastLoading = toast.loading("Loading...");
+    if (!program) {
+      console.error("Program not loaded, Pls refresh");
+      // return;
+    }
+    if (isReady) {
+      if (!payer2) {
+        toast.error("no payer");
+        return null;
+      }
+      try {
+        const unsignedTx = (await createUnsignedTransaction(
+          "withdraw",
+          program,
+          payer2,
+          {
+            campaignId: campaign_id as string,
+          }
+        )) as string;
 
-    try {
-      const { blockhash } =
-        await program?.provider?.connection.getLatestBlockhash("confirmed");
-      // Call the withdrawFund method on the program
-      const tx = await program?.methods
-        .withdrawFund()
-        .accounts({
-          creator: payer,
-          campaign: campaignId,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
-        .rpc({ preflightCommitment: "processed", blockhash });
+        console.log(unsignedTx);
 
-      await getCampaign();
-      toast.success("Funds withdrawn successfully!", {
-        id: toastLoading,
-      });
-      setOpenModal(false);
-      return tx;
-    } catch (error: any) {
-      setOpenModal(false);
-      toast.error("Error withdrawing funds: " + error.message, {
-        id: toastLoading,
-      });
-      console.error("Error withdrawing funds:", error);
+        const response = await client?.signAndSendTransaction({
+          unsignedTx: unsignedTx as string,
+          chainId: "solana:103",
+        });
+
+        await getCampaign();
+        toast.success("Campaign funded successfully!", {
+          id: toastLoading,
+        });
+        setOpenModal(false);
+
+        if (response?.untrusted?.success === true) {
+          await getCampaign();
+          toast.success("Campaign funded successfully!", {
+            id: toastLoading,
+          });
+          setOpenModal(false);
+        } else {
+          toast.error(`Error creating campaign`, {
+            id: toastLoading,
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error(`FAILED`, {
+          id: toastLoading,
+        });
+        return null;
+      }
+    } else {
+      try {
+        const { blockhash } =
+          await program?.provider?.connection.getLatestBlockhash("confirmed");
+        // Call the withdrawFund method on the program
+        const tx = await program?.methods
+          .withdrawFund()
+          .accounts({
+            creator: payer,
+            campaign: campaignId,
+            systemProgram: anchor.web3.SystemProgram.programId,
+          })
+          .rpc({ preflightCommitment: "processed", blockhash });
+
+        await getCampaign();
+        toast.success("Funds withdrawn successfully!", {
+          id: toastLoading,
+        });
+        setOpenModal(false);
+        return tx;
+      } catch (error: any) {
+        setOpenModal(false);
+        toast.error("Error withdrawing funds: " + error.message, {
+          id: toastLoading,
+        });
+        console.error("Error withdrawing funds:", error);
+      }
     }
   };
 

@@ -4,8 +4,18 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const cspHeader = `
+    default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:;
+    style-src 'self' 'nonce-${nonce}' https:;
+    img-src 'self' blob: data:;
+    font-src 'self';
     connect-src 'self' https://api.dscvr.one https://api1.stg.dscvr.one https://*.helius-rpc.com https://api.devnet.solana.com;
+    media-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'none';
+    upgrade-insecure-requests;
   `
     .replace(/\s{2,}/g, " ")
     .trim();
@@ -14,6 +24,11 @@ export function middleware(request: NextRequest) {
   requestHeaders.set("x-nonce", nonce);
 
   requestHeaders.set("Content-Security-Policy", cspHeader);
+
+  // Set Permissions-Policy header to allow Clipboard API
+  // requestHeaders.set("Permissions-Policy", "clipboard-write=*");
+  // Correct Permissions-Policy to allow Clipboard API
+  requestHeaders.set("Permissions-Policy", "clipboard-write=(self)");
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", cspHeader);

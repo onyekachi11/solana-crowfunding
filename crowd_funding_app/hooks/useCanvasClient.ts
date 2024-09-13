@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { CanvasClient, CanvasInterface } from "@dscvr-one/canvas-client-sdk";
+import {
+  CanvasClient,
+  CanvasInterface,
+  isIframeContext,
+} from "@dscvr-one/canvas-client-sdk";
 // import { validateHostMessage } from "../lib/dscvr";
 
 type CanvasState = {
@@ -18,7 +22,9 @@ export function useCanvasClient() {
   });
   const initializationStartedRef = useRef(false);
 
-  async function validateHostMessage(response: any) {
+  async function validateHostMessage(
+    response: CanvasInterface.Lifecycle.InitResponse
+  ) {
     // Implement your validation logic here
     return true; // Placeholder return
   }
@@ -29,16 +35,18 @@ export function useCanvasClient() {
     initializationStartedRef.current = true;
 
     async function initializeCanvas() {
-      const client = new CanvasClient();
+      const client = isIframeContext() ? new CanvasClient() : undefined;
+      // canvasClient = isIframeContext() ? new CanvasClient() : undefined;
 
       try {
-        const response = await client.ready();
-        const isValidResponse = await validateHostMessage(response);
+        const response = await client?.ready();
+        const isValidResponse =
+          response && (await validateHostMessage(response));
         if (isValidResponse) {
           setState({
             client,
-            user: response.untrusted.user,
-            content: response.untrusted.content,
+            user: response?.untrusted.user,
+            content: response?.untrusted.content,
             isReady: true,
           });
         }
@@ -49,11 +57,11 @@ export function useCanvasClient() {
 
     initializeCanvas();
 
-    return () => {
-      if (state.client) {
-        state.client.destroy();
-      }
-    };
+    // return () => {
+    //   if (state.client) {
+    //     state.client.destroy();
+    //   }
+    // };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

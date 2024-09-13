@@ -15,6 +15,7 @@ import {
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
+import { CanvasProvider } from "./CanvasClient";
 
 // Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -40,11 +41,13 @@ const ConnectWallet: React.FC<ConnectWalletProps> = ({ children }) => {
   );
 
   return (
+    // <CanvasProvider>
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>{children}</WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
+    // </CanvasProvider>
   );
 };
 

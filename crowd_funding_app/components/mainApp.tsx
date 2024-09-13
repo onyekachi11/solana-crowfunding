@@ -1,87 +1,3 @@
-// "use client";
-// import * as web3 from "@solana/web3.js";
-// import * as anchor from "@coral-xyz/anchor";
-// import "dotenv/config";
-// import {
-//   useWallet,
-//   useConnection,
-//   useAnchorWallet,
-//   AnchorWallet,
-// } from "@solana/wallet-adapter-react";
-
-// import { Suspense, useEffect, useState } from "react";
-// import Campaign from "@/components/campaign";
-// import Navbar from "@/components/Navbar";
-// import CreateCampaign from "@/components/createCampaign";
-// import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-// import { useResizeObserver } from "@/hooks/useResizeObserver";
-// import { useCanvasClient } from "@/hooks/useCanvasClient";
-// import { CanvasInterface, CanvasClient } from "@dscvr-one/canvas-client-sdk";
-
-// import { SOLANA_CHAINS, SOLANA_DEVNET_CHAIN } from "@solana/wallet-standard";
-// import { toast } from "react-toastify";
-
-// export default function MainApp() {
-//   const [program, setProgram] = useState<anchor.Program<anchor.Idl>>();
-
-//   const connections = new web3.Connection(
-//     web3.clusterApiUrl("devnet"),
-//     "finalized"
-//   );
-
-//   const programId = new web3.PublicKey(
-//     "Eis8iYtZBk7HmgBEvgj1soAtCZjqV8mDcRbcqo1U4TPc"
-//   );
-
-//   const provider = new anchor.AnchorProvider(
-//     connections,
-//     window && window.solana,
-//     {
-//       preflightCommitment: "finalized",
-//     }
-//   );
-//   console.log(provider);
-
-//   // Load program
-//   useEffect(() => {
-//     const fetchProgram = async () => {
-//       try {
-//         const idl = await anchor.Program.fetchIdl(programId, provider);
-//         if (idl) {
-//           const crowdFunderProgram = new anchor.Program(idl, provider);
-//           setProgram(crowdFunderProgram);
-//         }
-//       } catch (error) {
-//         console.error("Error fetching IDL:", error);
-//       }
-//     };
-
-//     fetchProgram();
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
-//   }, []);
-
-//   const payer = provider.publicKey as web3.PublicKey;
-//   const payer2 = payer ? new web3.PublicKey(payer?.toJSON()) : null;
-//   //   console.log("payer", payer);
-//   console.log("payer2", payer2);
-//   return (
-//     <>
-//       <div className="h-full">
-//         <Navbar />
-//         <p>{program ? "prgram true" : "program false"}</p>
-//         <CreateCampaign
-//           program={program}
-//           payer={payer2}
-//           conection={connections}
-//         />
-//         <Suspense fallback={<div> loading</div>}>
-//           <Campaign program={program} payer={payer2} />
-//         </Suspense>
-//       </div>
-//     </>
-//   );
-// }
-
 "use client";
 import * as web3 from "@solana/web3.js";
 import * as anchor from "@coral-xyz/anchor";
@@ -103,41 +19,42 @@ import { CanvasInterface, CanvasClient } from "@dscvr-one/canvas-client-sdk";
 
 import { SOLANA_CHAINS, SOLANA_DEVNET_CHAIN } from "@solana/wallet-standard";
 import { toast } from "react-toastify";
+import { useCanvasContext } from "@/providers/CanvasClient";
 
 export default function MainApp() {
   const [program, setProgram] = useState<anchor.Program<anchor.Idl>>();
   const [dscvrResponse, setDscvrResponse] = useState<any>();
+  const [address, setAddress] = useState("");
 
-  const { publicKey, connected, connect, wallets } = useWallet();
+  const { publicKey, connected, connect, wallets, disconnect } = useWallet();
 
   const { connection } = useConnection();
 
   const { setVisible } = useWalletModal();
 
-  const { client, user, content, isReady } = useCanvasClient();
-  useResizeObserver(client);
+  const { client, isReady } = useCanvasClient();
 
-  const wallet = useAnchorWallet();
+  useResizeObserver(client);
 
   const connections = new web3.Connection(
     web3.clusterApiUrl("devnet"),
     "confirmed"
   );
 
-  //   const provider = new anchor.AnchorProvider(connections, window.solana, {
-  //     preflightCommitment: "confirmed",
-  //   });
+  console.log(client);
 
   const handleConnect = async () => {
-    if (isReady) {
+    if (client) {
       const response = await client?.connectWallet("solana:103");
 
+      //   console.log(response);
       if (response?.untrusted.success == false) {
         toast.error("Could not connect");
         console.error("Failed to connect wallet", response.untrusted?.error);
         return;
       } else {
         setDscvrResponse(response);
+        setAddress(response?.untrusted?.address);
       }
     } else {
       try {
@@ -146,11 +63,11 @@ export default function MainApp() {
           await connect();
         } else {
           console.error("No wallets available");
-          // You might want to show a user-friendly message here
+          toast.error("No wallets available");
         }
       } catch (error) {
         console.error("Failed to connect wallet:", error);
-        // Handle the error appropriately (e.g., show an error message to the user)
+        toast.error("Failed to connect wallet");
       }
     }
   };
@@ -164,7 +81,7 @@ export default function MainApp() {
     const setBodyHeight = (height: number) => {
       document.body.style.height = height ? `${height}px` : "";
     };
-    if (!isReady) {
+    if (isReady) {
       setBodyHeight(900);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -199,30 +116,21 @@ export default function MainApp() {
   }, [connection]);
 
   const payer = publicKey ? new web3.PublicKey(publicKey) : null;
-  const payer3 = program ? program?.provider.publicKey : null;
 
-  const payer2 = dscvrResponse?.untrusted.address;
-  const payer4 = payer2 ? new web3.PublicKey(payer2) : null;
-  const payer5 = payer4 ? new web3.PublicKey(payer4?.toJSON()) : null;
-
-  console.log(payer, payer2, payer3, payer4, payer5);
+  const dscvrPayer = dscvrResponse?.untrusted.address;
+  const payer2 = dscvrPayer ? new web3.PublicKey(dscvrPayer) : null;
 
   return (
     <>
       <div className="h-full">
-        <Navbar connect={handleConnect} />
-        <p>{dscvrResponse?.untrusted?.address}</p>
-        <p>{isReady ? "true" : "false"}</p>
-        <p>{program ? "prgram true" : "program false"}</p>
-        <p>new2</p>
-        <CreateCampaign
-          program={program}
-          payer={payer}
-          payer2={payer4}
-          //   conection={connections}
-        />
+        <Navbar connect={handleConnect} address={address} />
+        {/* <p>
+          {client?.isReady ? "client.isReady = true" : "client.isReady = false"}
+        </p> */}
+        {/* <p>{program ? "prgram true" : "program false"}</p> */}
+        <CreateCampaign program={program} payer={payer} payer2={payer2} />
         <Suspense fallback={<div> loading</div>}>
-          <Campaign program={program} payer={payer} />
+          <Campaign program={program} payer={payer} payer2={payer2} />
         </Suspense>
       </div>
     </>
