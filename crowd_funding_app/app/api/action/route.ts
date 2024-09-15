@@ -7,6 +7,7 @@ import {
 } from "@solana/actions";
 import * as anchor from "@coral-xyz/anchor";
 import * as web3 from "@solana/web3.js";
+import Image from "../../../assets/stock-vector.jpg";
 // import { useWallet } from "@solana/wallet-adapter-react";
 
 const programId = new web3.PublicKey(
@@ -167,7 +168,11 @@ export async function GET(request: Request) {
 
     if (campaign) {
       const response: ActionGetResponse = {
-        icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
+        // icon: new URL(
+        //   "crowd_funding_app/assets/stock-vector.jpg",
+        //   new URL(request.url).origin
+        // ).toString(),
+        icon: "https://res.cloudinary.com/dukepqryi/image/upload/v1726437261/crowdfunder.jpg",
         description: campaign?.description,
         type: "action",
         label: "Fund Campaign",
@@ -291,4 +296,8 @@ export async function POST(request: Request) {
 
 export const OPTIONS = GET;
 
-// http://localhost:3000/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
+// // http://localhost:3000/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
+// https://solana-crowfunding.vercel.app/api/action?campaign_id=DJDSRPC4dzTJxfZLBq7fn7oNiyeSq6ci2t3w8AtyoEC4
+// https://solana-crowfunding.vercel.app/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
+
+// https://dscvr-blinks.vercel.app?action=https://solana-crowfunding.vercel.app/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
