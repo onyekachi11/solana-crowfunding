@@ -59,6 +59,98 @@ let program2: anchor.Program<anchor.Idl> | any;
   // }
 })();
 
+// export async function GET(request: Request) {
+//   const url = new URL(request.url);
+//   const campaignId = url.searchParams.get("campaign_id");
+
+//   if (!campaignId) {
+//     return new Response(
+//       JSON.stringify({ error: "Missing campaign_id parameter" }),
+//       { status: 400, headers: ACTIONS_CORS_HEADERS }
+//     );
+//   }
+
+//   try {
+//     const campaign: any = await program2?.account.campaign.fetch(
+//       new web3.PublicKey(campaignId)
+//     );
+
+//     console.log(campaign);
+
+//     if (campaign) {
+//       const response: ActionGetResponse = {
+//         icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
+//         description: campaign?.description,
+//         type: "action",
+//         label: "Fund Campaign",
+//         title: campaign?.title,
+//         disabled: campaign?.isActive === false,
+//         links: {
+//           actions: [
+//             {
+//               label: "Fund 0.1 SOL",
+//               href: `/api/action?campaign_id=${campaignId}&fund_amount=0.1`,
+//             },
+//             {
+//               label: "Fund 1 SOL",
+//               href: `/api/action?campaign_id=${campaignId}&fund_amount=1`,
+//             },
+//             {
+//               label: "Fund 5 SOL",
+//               href: `/api/action?campaign_id=${campaignId}&fund_amount=5`,
+//             },
+//             {
+//               label: "Enter amount to fund",
+//               href: `/api/action?campaign_id=${campaignId}&fund_amount={amount}`,
+//               parameters: [
+//                 {
+//                   name: "amount",
+//                   label: "Enter amount",
+//                   required: false,
+//                 },
+//               ],
+//             },
+//           ],
+//         },
+//       };
+//       return new Response(JSON.stringify(response), {
+//         headers: ACTIONS_CORS_HEADERS,
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error fetching campaign:", error);
+//     return new Response(JSON.stringify({ error: "Failed to fetch campaign" }), {
+//       status: 500,
+//       headers: ACTIONS_CORS_HEADERS,
+//     });
+//   }
+// }
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Retry logic to fetch campaign data with a delay and timeout
+async function fetchCampaignWithRetries(
+  campaignId: string,
+  retries: number = 5,
+  delayMs: number = 1000
+): Promise<any> {
+  let campaign = null;
+  for (let i = 0; i < retries; i++) {
+    try {
+      campaign = await program2?.account.campaign.fetch(
+        new web3.PublicKey(campaignId)
+      );
+      if (campaign) {
+        return campaign; // Return campaign if successful
+      }
+    } catch (error) {
+      console.error(`Attempt ${i + 1} failed:`, error);
+    }
+    await delay(delayMs); // Wait before retrying
+  }
+  throw new Error("Failed to fetch campaign after multiple attempts");
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const campaignId = url.searchParams.get("campaign_id");
@@ -71,11 +163,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const campaign: any = await program2?.account.campaign.fetch(
-      new web3.PublicKey(campaignId)
-    );
-
-    console.log(campaign);
+    const campaign = await fetchCampaignWithRetries(campaignId);
 
     if (campaign) {
       const response: ActionGetResponse = {
@@ -114,6 +202,12 @@ export async function GET(request: Request) {
         },
       };
       return new Response(JSON.stringify(response), {
+        headers: ACTIONS_CORS_HEADERS,
+      });
+    } else {
+      // Handle case where campaign is null/undefined
+      return new Response(JSON.stringify({ error: "Campaign not found" }), {
+        status: 404,
         headers: ACTIONS_CORS_HEADERS,
       });
     }
