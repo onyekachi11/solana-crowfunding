@@ -11,6 +11,11 @@ const Page = () => {
       {/* <Suspense fallback={<p>Loading...</p>}>
         <MainApp />
       </Suspense> */}
+      <link
+        rel="preload"
+        href="https://www.googletagmanager.com/gtag/js"
+        as="script"
+      ></link>
       <Script
         src="https://www.googletagmanager.com/gtag/js"
         strategy="afterInteractive"

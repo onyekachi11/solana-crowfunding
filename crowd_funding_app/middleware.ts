@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const cspHeader = `
   script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:;
-  connect-src 'self' https://api.dscvr.one https://api1.stg.dscvr.one https://*.helius-rpc.com https://api.devnet.solana.com;
+  connect-src 'self' https://api.dscvr.one https://api1.stg.dscvr.one https://*.helius-rpc.com https://api.devnet.solana.com wss://api.devnet.solana.com;
   
   `
     .replace(/\s{2,}/g, " ")
