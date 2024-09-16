@@ -294,7 +294,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         )}
       </div>
 
-      {!openLinkModal && (
+      {openLinkModal && (
         <Modal>
           <div className="w-[600px] p-9">
             <div className="flex justify-between items-center">
