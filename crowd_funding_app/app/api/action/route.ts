@@ -32,25 +32,13 @@ const providers = new anchor.AnchorProvider(
 let program: anchor.Program<anchor.Idl>;
 let program2: anchor.Program<anchor.Idl> | any;
 
-// console.log(program, program2);
-
 (async () => {
-  // const { publicKey, connected, connect, wallets, disconnect, wallet } =
-  //   useWallet();
-
-  // const provider = new anchor.AnchorProvider(
-  //   connection,
-  //   wallet?.adapter as unknown as anchor.Wallet, // Empty wallet for read-only operations
-  //   { preflightCommitment: "confirmed" }
-  // );
-
   try {
     const idl = await anchor.Program.fetchIdl<anchor.Idl>(programId, providers);
     if (idl) {
       program = new anchor.Program<anchor.Idl>(idl, providers);
       program2 = new anchor.Program<anchor.Idl>(idl, providers);
     }
-    console.log(program2);
   } catch (error) {
     console.error("Error fetching IDL:", error);
   }
@@ -59,73 +47,6 @@ let program2: anchor.Program<anchor.Idl> | any;
   // console.error("Solana wallet not found");
   // }
 })();
-
-// export async function GET(request: Request) {
-//   const url = new URL(request.url);
-//   const campaignId = url.searchParams.get("campaign_id");
-
-//   if (!campaignId) {
-//     return new Response(
-//       JSON.stringify({ error: "Missing campaign_id parameter" }),
-//       { status: 400, headers: ACTIONS_CORS_HEADERS }
-//     );
-//   }
-
-//   try {
-//     const campaign: any = await program2?.account.campaign.fetch(
-//       new web3.PublicKey(campaignId)
-//     );
-
-//     console.log(campaign);
-
-//     if (campaign) {
-//       const response: ActionGetResponse = {
-//         icon: "https://images.app.goo.gl/dZ8L7Q2TEDYzZ4wb6",
-//         description: campaign?.description,
-//         type: "action",
-//         label: "Fund Campaign",
-//         title: campaign?.title,
-//         disabled: campaign?.isActive === false,
-//         links: {
-//           actions: [
-//             {
-//               label: "Fund 0.1 SOL",
-//               href: `/api/action?campaign_id=${campaignId}&fund_amount=0.1`,
-//             },
-//             {
-//               label: "Fund 1 SOL",
-//               href: `/api/action?campaign_id=${campaignId}&fund_amount=1`,
-//             },
-//             {
-//               label: "Fund 5 SOL",
-//               href: `/api/action?campaign_id=${campaignId}&fund_amount=5`,
-//             },
-//             {
-//               label: "Enter amount to fund",
-//               href: `/api/action?campaign_id=${campaignId}&fund_amount={amount}`,
-//               parameters: [
-//                 {
-//                   name: "amount",
-//                   label: "Enter amount",
-//                   required: false,
-//                 },
-//               ],
-//             },
-//           ],
-//         },
-//       };
-//       return new Response(JSON.stringify(response), {
-//         headers: ACTIONS_CORS_HEADERS,
-//       });
-//     }
-//   } catch (error) {
-//     console.error("Error fetching campaign:", error);
-//     return new Response(JSON.stringify({ error: "Failed to fetch campaign" }), {
-//       status: 500,
-//       headers: ACTIONS_CORS_HEADERS,
-//     });
-//   }
-// }
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -154,24 +75,12 @@ async function fetchCampaignWithRetries(
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const campaignId = url.searchParams.get("campaign_id");
-
-  if (!campaignId) {
-    return new Response(
-      JSON.stringify({ error: "Missing campaign_id parameter" }),
-      { status: 400, headers: ACTIONS_CORS_HEADERS }
-    );
-  }
+  const campaignId = url.searchParams.get("campaign_id") as string;
 
   try {
-    const campaign = await fetchCampaignWithRetries(campaignId);
-
-    if (campaign) {
+    if (campaignId) {
+      const campaign = await fetchCampaignWithRetries(campaignId);
       const response: ActionGetResponse = {
-        // icon: new URL(
-        //   "crowd_funding_app/assets/stock-vector.jpg",
-        //   new URL(request.url).origin
-        // ).toString(),
         icon: "https://res.cloudinary.com/dukepqryi/image/upload/v1726437261/crowdfunder.jpg",
         description: campaign?.description,
         type: "action",
@@ -200,6 +109,8 @@ export async function GET(request: Request) {
                   name: "amount",
                   label: "Enter amount",
                   required: false,
+                  // pattern,
+                  type: "number",
                 },
               ],
             },
@@ -210,9 +121,43 @@ export async function GET(request: Request) {
         headers: ACTIONS_CORS_HEADERS,
       });
     } else {
-      // Handle case where campaign is null/undefined
-      return new Response(JSON.stringify({ error: "Campaign not found" }), {
-        status: 404,
+      const response: ActionGetResponse = {
+        icon: "https://res.cloudinary.com/dukepqryi/image/upload/v1726437261/crowdfunder.jpg",
+        description:
+          "Easy way to create a crowd funding campaign and reciveve donation with the help of solana blinks.",
+        type: "action",
+        label: "Fund Campaign",
+        title: "Solana CrowdFunder",
+        links: {
+          actions: [
+            {
+              label: "Create New Campaign",
+              href: `/api/action?title={title}&description={description}&fund_goal={fund_goal}`,
+
+              parameters: [
+                {
+                  name: "title",
+                  label: "Enter title",
+                  required: true,
+                },
+                {
+                  name: "description",
+                  label: "Enter description",
+                  required: true,
+                },
+                {
+                  name: "fund_goal",
+                  label: "Enter funding goal",
+                  required: true,
+                  type: "number",
+                  pattern: "^\\d+(\\.\\d{0,2})?$",
+                },
+              ],
+            },
+          ],
+        },
+      };
+      return new Response(JSON.stringify(response), {
         headers: ACTIONS_CORS_HEADERS,
       });
     }
@@ -232,6 +177,12 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const fundAmount = url.searchParams.get("fund_amount");
   const campaignId = url.searchParams.get("campaign_id");
+  const title = url.searchParams.get("title");
+  const description = url.searchParams.get("description");
+  const fund_goal = url.searchParams.get("fund_goal");
+  const campaignKeypair = anchor.web3.Keypair.generate();
+
+  console.log(program);
 
   if (!program) {
     return new Response(JSON.stringify({ error: "Program not initialized" }), {
@@ -240,21 +191,36 @@ export async function POST(request: Request) {
     });
   }
 
-  if (!campaignId || !fundAmount) {
-    return new Response(
-      JSON.stringify({ error: "Missing campaign ID or fund amount" }),
-      { status: 400, headers: ACTIONS_CORS_HEADERS }
-    );
-  }
-
   try {
-    const ix = await program.methods
-      .fundCampaign(new anchor.BN(Number(fundAmount) * web3.LAMPORTS_PER_SOL))
-      .accounts({
-        payer: userPubkey,
-        campaign: new web3.PublicKey(campaignId as web3.PublicKeyInitData),
-      })
-      .instruction();
+    let ix: anchor.web3.TransactionInstruction;
+
+    if (!campaignId) {
+      ix = await program.methods
+        .createCampaign(
+          title,
+          description,
+          new anchor.BN(Number(fund_goal) * web3.LAMPORTS_PER_SOL)
+        )
+        .accounts({
+          campaign: new web3.PublicKey(campaignKeypair.publicKey),
+          payer: userPubkey,
+        })
+        .instruction();
+    } else {
+      if (!campaignId || !fundAmount) {
+        return new Response(
+          JSON.stringify({ error: "Missing campaign ID or fund amount" }),
+          { status: 400, headers: ACTIONS_CORS_HEADERS }
+        );
+      }
+      ix = await program.methods
+        .fundCampaign(new anchor.BN(Number(fundAmount) * web3.LAMPORTS_PER_SOL))
+        .accounts({
+          payer: userPubkey,
+          campaign: new web3.PublicKey(campaignId as web3.PublicKeyInitData),
+        })
+        .instruction();
+    }
 
     const transaction = new web3.Transaction();
     transaction.feePayer = userPubkey;
@@ -264,14 +230,47 @@ export async function POST(request: Request) {
 
     transaction.add(ix);
 
+    !campaignId && transaction.sign(campaignKeypair);
+
     const serializedTransaction = transaction.serialize({
       requireAllSignatures: false,
       verifySignatures: false,
     });
 
+    let message: string;
+
+    if (title && description && fund_goal) {
+      const url = `Share Link:\nhttps://solana-crowfunding.vercel.app/${campaignKeypair.publicKey.toString()}`;
+      const shareBlink = `Share Blink link:\nhttps://dscvr-blinks.vercel.app?action=https://solana-crowfunding.vercel.app/${campaignKeypair.publicKey.toString()}`;
+
+      // Wrap the URL if it's longer than 50 characters
+      const wrappedUrl =
+        url.length > 50 ? (url.match(/.{1,50}/g) ?? [url]).join("\n") : url;
+
+      // Wrap the Share Blink link similarly
+      const wrappedShareBlink =
+        shareBlink.length > 50
+          ? (shareBlink.match(/.{1,50}/g) ?? [shareBlink]).join("\n")
+          : shareBlink;
+
+      const separator = "\u00A0".repeat(30);
+      // Ensure clear separation with additional line breaks and maybe a separator like "----"
+      message = `${wrappedUrl}\n\n${separator}\n\n${wrappedShareBlink}`;
+    } else {
+      const userMessage = `Transaction prepared for ${userPubkey.toBase58()}`;
+
+      // Wrap the userMessage if it's longer than 50 characters
+      const wrappedUserMessage =
+        userMessage.length > 50
+          ? (userMessage.match(/.{1,50}/g) ?? [userMessage]).join("\n")
+          : userMessage;
+
+      message = wrappedUserMessage;
+    }
+
     const response: ActionPostResponse = {
       transaction: serializedTransaction.toString("base64"),
-      message: `Transaction prepared for ${userPubkey.toBase58()}`,
+      message: message,
     };
     return new Response(JSON.stringify(response), {
       headers: ACTIONS_CORS_HEADERS,
@@ -285,19 +284,4 @@ export async function POST(request: Request) {
   }
 }
 
-// export async function OPTIONS(request: Request) {
-//   return new Response(null, {
-//     headers: {
-//       ...ACTIONS_CORS_HEADERS,
-//       "Content-Length": "0", // No content in OPTIONS response
-//     },
-//   });
-// }
-
 export const OPTIONS = GET;
-
-// // http://localhost:3000/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
-// https://solana-crowfunding.vercel.app/api/action?campaign_id=DJDSRPC4dzTJxfZLBq7fn7oNiyeSq6ci2t3w8AtyoEC4
-// https://solana-crowfunding.vercel.app/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
-
-// https://dscvr-blinks.vercel.app?action=https://solana-crowfunding.vercel.app/api/action?campaign_id=3W5ve1T9Hjy1uaq1LUG8kemgbCefj7eSnKaz4kWnWSoa
