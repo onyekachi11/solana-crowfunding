@@ -299,43 +299,47 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
       {openLinkModal && (
         <Modal>
-          <div className="w-[600px] p-9">
-            <div className="flex justify-between items-center">
-              <p className="font-medium text-[20px] ">
-                Share your campaign link
-              </p>
-              <div
-                onClick={() => setOpenLinkModal(false)}
-                className="cursor-pointer"
-              >
-                <IoCloseCircle size={30} />
+          <div className="w-[350px] sm:w-[600px]">
+            <div className=" p-9">
+              <div className="flex justify-between items-center">
+                <p className="font-medium text-[20px] ">
+                  Share your campaign link
+                </p>
+                <div
+                  onClick={() => setOpenLinkModal(false)}
+                  className="cursor-pointer"
+                >
+                  <IoCloseCircle size={30} />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center  mt-6 gap-4 sm:gap-2 w-full">
+                <p className="border border-[#aba2a2b8] p-3 sm:w-[72%] w-[100%]   overflow-x-auto whitespace-nowrap rounded">
+                  {/* <a href={shareLink}>{shareLink}</a> */}
+                  <Link href={`/${id}`}>{shareLink}</Link>
+                </p>
+                <Button
+                  name={isCopied ? "Copied!" : "Copy Link"}
+                  onClick={() => handleCopy(shareLink, "share")}
+                />
               </div>
             </div>
+            <div className=" p-9">
+              <div className="flex justify-between items-center">
+                <p className="font-medium text-[16px] sm:text-[20px] ">
+                  Share your blink link
+                </p>
+              </div>
 
-            <div className="flex justify-between items-center  mt-6 gap-2 w-full">
-              <p className="border border-[#aba2a2b8] p-3 w-[72%] overflow-x-auto whitespace-nowrap rounded">
-                {/* <a href={shareLink}>{shareLink}</a> */}
-                <Link href={`/${id}`}>{shareLink}</Link>
-              </p>
-              <Button
-                name={isCopied ? "Copied!" : "Copy Link"}
-                onClick={() => handleCopy(shareLink, "share")}
-              />
-            </div>
-          </div>
-          <div className="w-[600px] p-9">
-            <div className="flex justify-between items-center">
-              <p className="font-medium text-[20px] ">Share your blink link</p>
-            </div>
-
-            <div className="flex justify-between items-center  mt-6 gap-2 w-full">
-              <p className="border border-[#aba2a2b8] p-3 w-[72%] overflow-x-auto whitespace-nowrap rounded">
-                <Link href={`/${blinkLink}`}>{blinkLink}</Link>
-              </p>
-              <Button
-                name={isBlinkCopied ? "Copied!" : "Copy Link"}
-                onClick={() => handleCopy(blinkLink, "blink")}
-              />
+              <div className="flex  flex-col  sm:flex-row justify-between sm:items-center  mt-6 gap-4 sm:gap-2 w-full">
+                <p className="border border-[#aba2a2b8] p-3 sm:w-[72%] w-[100%] overflow-x-auto whitespace-nowrap rounded">
+                  <Link href={`/${blinkLink}`}>{blinkLink}</Link>
+                </p>
+                <Button
+                  name={isBlinkCopied ? "Copied!" : "Copy Link"}
+                  onClick={() => handleCopy(blinkLink, "blink")}
+                />
+              </div>
             </div>
           </div>
         </Modal>
