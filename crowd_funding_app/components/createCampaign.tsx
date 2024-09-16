@@ -146,24 +146,67 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
   // const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${id}`;
   const blinkLink = `https://dscvr-blinks.vercel.app?action=https://solana-crowfunding.vercel.app/api/action?campaign_id=${id}`;
 
+  // const handleCopy = async (link: string, value: "share" | "blink") => {
+  //   const response = await client?.copyToClipboard(link);
+  //   if (response?.untrusted.success === true) {
+  //     if (value === "share") {
+  //       setIsCopied(true);
+  //     } else if (value === "blink") {
+  //       setBlinkCopied(true);
+  //     }
+  //     setTimeout(() => {
+  //       if (value === "share") {
+  //         setIsCopied(false);
+  //       } else if (value === "blink") {
+  //         setBlinkCopied(false);
+  //       }
+  //     }, 2000); // Reset copied state after 2 seconds
+  //   } else {
+  //     console.error("Failed to copy text: ");
+  //     toast.error("Failed to copy text: ");
+  //   }
+  // };
+
   const handleCopy = async (link: string, value: "share" | "blink") => {
-    const response = await client?.copyToClipboard(link);
-    if (response?.untrusted.success === true) {
-      if (value === "share") {
-        setIsCopied(true);
-      } else if (value === "blink") {
-        setBlinkCopied(true);
+    function copy() {
+      const stateMap = {
+        share: setIsCopied,
+        blink: setBlinkCopied,
+      };
+      // Set the relevant state to true
+      const setState = stateMap[value];
+      if (setState) {
+        setState(true);
+
+        // Reset the state to false after 2 seconds
+        setTimeout(() => {
+          setState(false);
+        }, 2000);
       }
-      setTimeout(() => {
-        if (value === "share") {
-          setIsCopied(false);
-        } else if (value === "blink") {
-          setBlinkCopied(false);
+    }
+
+    if (isReady) {
+      try {
+        const response = await client?.copyToClipboard(link);
+        if (response?.untrusted.success === true) {
+          copy();
+        } else {
+          console.error("Failed to copy text: ");
+          toast.error("Failed to copy text: ");
         }
-      }, 2000); // Reset copied state after 2 seconds
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+        toast.error("Failed to copy text: ");
+      }
     } else {
-      console.error("Failed to copy text: ");
-      toast.error("Failed to copy text: ");
+      try {
+        await navigator.clipboard.writeText(link);
+        copy();
+        toast.success("Link copied");
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+        toast.error("Failed to copy text: ");
+      }
     }
   };
 
@@ -251,7 +294,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
         )}
       </div>
 
-      {openLinkModal && (
+      {!openLinkModal && (
         <Modal>
           <div className="w-[600px] p-9">
             <div className="flex justify-between items-center">

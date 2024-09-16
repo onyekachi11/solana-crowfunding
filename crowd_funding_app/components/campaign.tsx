@@ -62,15 +62,33 @@ const Campaign = ({
   const blinkLink = `https://dscvr-blinks.vercel.app?action=https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaign_id}`;
 
   const handleCopy = async () => {
-    const response = await client?.copyToClipboard(blinkLink);
-    if (response?.untrusted.success === true) {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
-      // toast.success("Link copied");
+    if (isReady) {
+      try {
+        const response = await client?.copyToClipboard(blinkLink);
+        if (response?.untrusted.success === true) {
+          setIsCopied(true);
+          setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
+          // toast.success("Link copied");
+        } else {
+          console.error("Failed to copy text: ");
+          toast.error("Failed to copy text: ");
+        }
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+        toast.error("Failed to copy text: ");
+      }
     } else {
-      console.error("Failed to copy text: ");
-      toast.error("Failed to copy text: ");
+      try {
+        await navigator.clipboard.writeText(blinkLink);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
+        toast.success("Link copied");
+      } catch (err) {
+        console.error("Failed to copy text: ", err);
+        toast.error("Failed to copy text: ");
+      }
     }
+
     // try {
     //   await navigator.clipboard.writeText(blinkLink);
     //   setIsCopied(true);
