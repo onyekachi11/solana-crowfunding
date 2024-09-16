@@ -91,14 +91,9 @@ export default function MainApp() {
   useEffect(() => {
     if (typeof window !== "undefined" && window.solana) {
       // Ensure that window.solana exists before creating the provider
-      const provider = new anchor.AnchorProvider(connections, window.solana, {
+      const provider = new anchor.AnchorProvider(connection, window.solana, {
         preflightCommitment: "finalized",
       });
-      // const provider = new anchor.AnchorProvider(
-      //   connection,
-      //   wallets as unknown as anchor.Wallet, // Empty wallet for read-only operations
-      //   { preflightCommitment: "confirmed" }
-      // );
 
       // Fetch the program or do other actions that require the provider here
       const fetchProgram = async () => {
@@ -124,6 +119,8 @@ export default function MainApp() {
 
   const dscvrPayer = dscvrResponse?.untrusted.address;
   const payer2 = dscvrPayer ? new web3.PublicKey(dscvrPayer) : null;
+
+  console.log(payer);
 
   return (
     <>

@@ -40,25 +40,13 @@ const Campaign = ({
   connection,
 }: Campaign) => {
   const [campaign, setCampaign] = useState<CampaignAccount | null>(null);
-  const [campaignId, setCampaignId] = useState<string>("");
   const [amount, setAmount] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
   const { campaign_id } = useParams();
-  // const { client, user, content, isReady } = useCanvasContext();
   const { client, isReady } = useCanvasClient();
 
-  // useEffect(() => {
-  //   // const id = searchParams.get("campaign_id");
-  //   if (campaign_id) {
-  //     setCampaignId(campaign_id as string);
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
-
-  // const blinkLink = `http://localhost:3000/api/action?campaign_id=${campaignId}`;
-  // const blinkLink = `https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaign_id}`;
   const blinkLink = `https://dscvr-blinks.vercel.app?action=https://solana-crowfunding.vercel.app/api/action?campaign_id=${campaign_id}`;
 
   const handleCopy = async () => {
@@ -67,7 +55,7 @@ const Campaign = ({
         const response = await client?.copyToClipboard(blinkLink);
         if (response?.untrusted.success === true) {
           setIsCopied(true);
-          setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
+          setTimeout(() => setIsCopied(false), 2000);
           // toast.success("Link copied");
         } else {
           console.error("Failed to copy text: ");
@@ -81,22 +69,13 @@ const Campaign = ({
       try {
         await navigator.clipboard.writeText(blinkLink);
         setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
+        setTimeout(() => setIsCopied(false), 2000);
         toast.success("Link copied");
       } catch (err) {
         console.error("Failed to copy text: ", err);
         toast.error("Failed to copy text: ");
       }
     }
-
-    // try {
-    //   await navigator.clipboard.writeText(blinkLink);
-    //   setIsCopied(true);
-    //   setTimeout(() => setIsCopied(false), 2000); // Reset copied state after 2 seconds
-    //   toast.success("Link copied");
-    // } catch (err) {
-    //   console.error("Failed to copy text: ", err);
-    // }
   };
 
   const getCampaign = async () => {
@@ -125,22 +104,20 @@ const Campaign = ({
     }
   };
 
-  console.log(campaign_id);
-
   useEffect(() => {
-    console.log(campaign_id);
     if (!campaign_id) {
       console.error("No campaign id provided");
       return;
     } else {
       getCampaign();
     }
-    // getCampaign();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign_id, program]);
 
+  const delay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   const fundCampaign = async (amount: number) => {
-    const toastLoading = toast.loading("Loading...");
     if (!program) {
       console.error("Program not loaded, Pls refresh");
       // return;
@@ -150,6 +127,8 @@ const Campaign = ({
         toast.error(`No wallet connected`);
         return;
       }
+      const toastLoading = toast.loading("Loading...");
+
       try {
         const unsignedTx = (await createUnsignedTransaction(
           "fund",
@@ -181,7 +160,7 @@ const Campaign = ({
           });
           setOpenModal(false);
         } else {
-          toast.error(`Error creating campaign`, {
+          toast.error(`Error funding campaign`, {
             id: toastLoading,
           });
         }
@@ -193,23 +172,31 @@ const Campaign = ({
         return null;
       }
     } else {
+      let toastLoading: string;
+      if (!payer) {
+        toast.error("no payer");
+        return null;
+      } else {
+        toastLoading = toast.loading("Loading...");
+      }
+
       try {
-        if (!payer) {
-          toast.error("no payer");
-          return null;
-        }
+        console.log(payer);
         const { blockhash } =
           await program?.provider?.connection.getLatestBlockhash("confirmed");
 
         const tx = await program?.methods
           ?.fundCampaign(new anchor.BN(amount))
           .accounts({
-            payer: new web3.PublicKey(payer),
-            campaign: campaignId,
+            campaign: campaign_id,
+            payer: new web3.PublicKey(payer.toString()),
             systemProgram: web3.SystemProgram.programId,
           })
-          // .signers([payer])
-          .rpc({ preflightCommitment: "processed", blockhash });
+          .rpc({
+            skipPreflight: false,
+            preflightCommitment: "confirmed",
+            maxRetries: 5, // Retry confirmation
+          });
 
         await getCampaign();
         toast.success("Campaign funded successfully!", {
@@ -217,8 +204,16 @@ const Campaign = ({
         });
         setOpenModal(false);
         return tx;
-      } catch (error) {
+      } catch (error: any) {
         setOpenModal(false);
+        if (error.message.includes("TransactionExpiredTimeoutError")) {
+          toast.error(
+            "Transaction is taking longer than expected. Please check the status manually in Solana Explorer.",
+            {
+              id: toastLoading,
+            }
+          );
+        }
         toast.error("Error funding campaign!", {
           id: toastLoading,
         });
@@ -281,17 +276,21 @@ const Campaign = ({
       }
     } else {
       try {
-        const { blockhash } =
-          await program?.provider?.connection.getLatestBlockhash("confirmed");
+        // const { blockhash } =
+        //   await program?.provider?.connection.getLatestBlockhash("confirmed");
         // Call the withdrawFund method on the program
         const tx = await program?.methods
           .withdrawFund()
           .accounts({
             creator: payer,
-            campaign: campaignId,
+            campaign: campaign_id,
             systemProgram: anchor.web3.SystemProgram.programId,
           })
-          .rpc({ preflightCommitment: "processed", blockhash });
+          .rpc({
+            skipPreflight: false,
+            preflightCommitment: "finalized",
+            maxRetries: 5, // Retry confirmation
+          });
 
         await getCampaign();
         toast.success("Funds withdrawn successfully!", {
@@ -301,9 +300,18 @@ const Campaign = ({
         return tx;
       } catch (error: any) {
         setOpenModal(false);
-        toast.error("Error withdrawing funds: " + error.message, {
-          id: toastLoading,
-        });
+        if (error.message.includes("TransactionExpiredTimeoutError")) {
+          toast.error(
+            "Transaction is taking longer than expected. Please check the status manually in Solana Explorer.",
+            {
+              id: toastLoading,
+            }
+          );
+        } else {
+          toast.error("Error withdrawing funds: " + error.message, {
+            id: toastLoading,
+          });
+        }
         console.error("Error withdrawing funds:", error);
       }
     }

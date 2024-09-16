@@ -102,7 +102,7 @@ export async function GET(request: Request) {
               href: `/api/action?campaign_id=${campaignId}&fund_amount=5`,
             },
             {
-              label: "Enter amount to fund",
+              label: "Fund",
               href: `/api/action?campaign_id=${campaignId}&fund_amount={amount}`,
               parameters: [
                 {

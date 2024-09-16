@@ -14,7 +14,7 @@ import { createUnsignedTransaction } from "@/app/uils";
 import { useRouter } from "next/navigation";
 
 interface Campaign {
-  program: anchor.Program<anchor.Idl> | undefined;
+  program: anchor.Program<anchor.Idl> | any;
   payer: web3.PublicKey | null;
   payer2: web3.PublicKey | null;
 }
@@ -115,6 +115,9 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
 
         toastloading;
 
+        const { blockhash }: any =
+          await program?.provider?.connection.getLatestBlockhash("confirmed");
+
         const tx = await program?.methods
           ?.createCampaign(title, description, amount)
           .accounts({
@@ -122,7 +125,7 @@ const CreateCampaign = ({ program, payer, payer2 }: Campaign) => {
             payer: new web3.PublicKey(payer),
           })
           .signers([campaignKeypair])
-          .rpc();
+          .rpc({ preflightCommitment: "processed", blockhash });
 
         setId(campaignKeypair.publicKey.toString());
         setOpenModal(false);
