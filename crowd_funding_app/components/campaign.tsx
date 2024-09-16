@@ -346,7 +346,7 @@ const Campaign = ({
                 <p>Inactive</p>
               </div>
             )}
-            {campaign?.isActive === true && (
+            {!campaign?.isActive === true && (
               <div className="flex gap-3 flex-col sm:flex-row">
                 <Button
                   name="Fund Campaign"
@@ -379,7 +379,7 @@ const Campaign = ({
       )}
       {openModal && (
         <Modal>
-          <div className="py-16 px-16 ">
+          <div className="px-5 py-5 sm:py-16 sm:px-16 ">
             <div className="flex justify-between items-center mb-6">
               <p className="font-medium text-[20px] ">Amount to fund</p>
               <div
